@@ -9,14 +9,56 @@ const router = Router();
 const LIST_LIMIT = parseInt(process.env.ORDER_LIST_LIMIT || "2000", 10);
 export const DATE_FIELDS = [{ code: "orderDate", label: "Order Date" }, { code: "requiredDeliveryDate", label: "Required Delivery" }, { code: "etd", label: "ETD" }, { code: "eta", label: "ETA" }];
 function isOverdue(o) { if (!o.requiredDeliveryDate || o.status === "SHIPPED" || o.status === "CANCELLED") return false; const d = new Date(o.requiredDeliveryDate); const t = new Date(); t.setHours(0, 0, 0, 0); return !isNaN(d.getTime()) && d < t; }
-function summarise(o) { return { id: o.id, reference: o.reference, orderNo: o.orderNo, orderNoSplit: o.orderNoSplit || "", orderDate: o.orderDate, transportMode: o.transportMode, supplierName: o.supplierName, buyerName: o.buyerName, originCode: o.originCode, destCode: o.destCode, loadPort: o.loadPort || "", dischargePort: o.dischargePort || "", containerMode: o.containerMode || "", clientCode: o.clientCode || "", bookingConfRef: o.bookingConfRef || "", incoTerms: o.incoTerms || "", requiredDeliveryDate: o.requiredDeliveryDate, serviceLevel: o.serviceLevel, weight: o.weight, volume: o.volume, quantity: o.quantity, goodsDescription: o.goodsDescription, status: o.status, cwShipmentNumber: o.cwShipmentNumber, etd: o.etd, eta: o.eta, bookingRef: o.bookingRef || "", cwOrgCode: o.cwOrgCode || "", overdue: isOverdue(o), updatedAt: o.updatedAt }; }
+function summarise(o) { return { id: o.id, reference: o.reference, orderNo: o.orderNo, orderNoSplit: o.orderNoSplit || "", orderDate: o.orderDate, transportMode: o.transportMode, supplierName: o.supplierName, supplierCode: o.supplierCode || "", buyerName: o.buyerName, buyerCode: o.buyerCode || "", originCode: o.originCode, destCode: o.destCode, loadPort: o.loadPort || "", dischargePort: o.dischargePort || "", containerMode: o.containerMode || "", clientCode: o.clientCode || "", bookingConfRef: o.bookingConfRef || "", incoTerms: o.incoTerms || "", requiredDeliveryDate: o.requiredDeliveryDate, serviceLevel: o.serviceLevel, weight: o.weight, volume: o.volume, quantity: o.quantity, goodsDescription: o.goodsDescription, status: o.status, cwShipmentNumber: o.cwShipmentNumber, etd: o.etd, eta: o.eta, bookingRef: o.bookingRef || "", cwOrgCode: o.cwOrgCode || "", overdue: isOverdue(o), updatedAt: o.updatedAt }; }
+const SEARCHABLE_ORDER_FIELDS = new Set(["reference", "orderNo", "orderDate", "transportMode", "supplierName", "supplierCode", "buyerName", "buyerCode", "originCode", "destCode", "loadPort", "dischargePort", "containerMode", "clientCode", "bookingConfRef", "incoTerms", "requiredDeliveryDate", "serviceLevel", "weight", "volume", "quantity", "goodsDescription", "cwShipmentNumber", "bookingRef", "status", "cwOrgCode", "overdue", "updatedAt"]);
+function matchesSearchFilter(order, filter) {
+  let actual = filter.field === "orderNo" ? `${order.orderNo || ""}${order.orderNoSplit ? `-${order.orderNoSplit}` : ""}` : filter.field === "overdue" ? isOverdue(order) : filter.field === "status" && isOverdue(order) ? "OVERDUE" : order[filter.field];
+  if (actual == null || actual === "") return false;
+  const expected = String(filter.value).trim();
+  if (filter.type === "number") {
+    const actualNumber = Number(actual); const expectedNumber = Number(expected);
+    if (!Number.isFinite(actualNumber) || !Number.isFinite(expectedNumber)) return false;
+    return { eq: actualNumber === expectedNumber, neq: actualNumber !== expectedNumber, gt: actualNumber > expectedNumber, gte: actualNumber >= expectedNumber, lt: actualNumber < expectedNumber, lte: actualNumber <= expectedNumber }[filter.operator] ?? false;
+  }
+  const actualText = String(actual);
+  const left = (filter.type === "date" ? actualText.slice(0, 10) : actualText).toLowerCase();
+  const right = (filter.type === "date" ? expected.slice(0, 10) : expected).toLowerCase();
+  if (filter.operator === "contains") return left.includes(right);
+  if (filter.operator === "neq") return left !== right;
+  if (filter.operator === "gt") return left > right;
+  if (filter.operator === "gte") return left >= right;
+  if (filter.operator === "lt") return left < right;
+  if (filter.operator === "lte") return left <= right;
+  return left === right;
+}
 function docMeta(d) { return { id: d.id, fileName: d.fileName, size: d.size, uploadedBy: d.uploadedBy }; }
 const codeOf = (v) => { const s = String(v ?? "").trim(); const m = /^([A-Za-z0-9/]+)\s*-\s*/.exec(s); return m ? m[1] : s; };
 function normDate(v) { if (!v) return ""; const s = String(v).trim(); const dmy = /^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/.exec(s); if (dmy) { const yr = dmy[3].length === 2 ? "20" + dmy[3] : dmy[3]; return `${yr}-${dmy[2].padStart(2, "0")}-${dmy[1].padStart(2, "0")}`; } const d = new Date(s); return isNaN(d.getTime()) ? s : d.toISOString().slice(0, 10); }
 router.get("/kpis", requirePermission("order.view"), (req, res) => { const all = allOrders().filter((o) => canSeeOrder(req.user, o)); res.json({ total: all.length, pending: all.filter((o) => o.status === "PENDING").length, overdue: all.filter(isOverdue).length, shipped: all.filter((o) => o.status === "SHIPPED").length }); });
 router.get("/meta/orgs", requirePermission("order.view"), (req, res) => { const supplierOrgs = toOptions(orderSupplierOrgsFor(req.user)); const buyerOrgs = toOptions(orderBuyerOrgsFor(req.user)); res.json({ hasAccess: userHasOrderAccess(req.user), supplierOrgs, buyerOrgs, dateFields: DATE_FIELDS, directory: scopedDirectory([...supplierOrgs, ...buyerOrgs]) }); });
 router.get("/meta/bookings", requirePermission("order.view"), (req, res) => { const items = db.bookings.filter((b) => canSeeOrder(req.user, { cwOrgCode: b.cwOrgCode })).map((b) => ({ id: b.id, reference: b.reference, mode: b.mode, shipper: b.shipper?.companyName, status: b.status })); res.json({ total: items.length, items }); });
-router.get("/", requirePermission("order.view"), (req, res) => { let items = allOrders().filter((o) => canSeeOrder(req.user, o)); const { mode, orderNo, status, q, overdue } = req.query; const like = (v, s) => String(v || "").toLowerCase().includes(String(s).toLowerCase()); if (mode) items = items.filter((o) => o.transportMode === mode); if (status) items = items.filter((o) => o.status === status); if (orderNo) items = items.filter((o) => like(o.orderNo, orderNo)); if (overdue === "true") items = items.filter(isOverdue); if (q) { const s = String(q).toLowerCase(); items = items.filter((o) => [o.reference, o.orderNo, o.supplierName, o.buyerName, o.goodsDescription, o.cwShipmentNumber].filter(Boolean).some((v) => String(v).toLowerCase().includes(s))); } items.sort((a, b) => (a.updatedAt === b.updatedAt ? 0 : String(b.updatedAt) > String(a.updatedAt) ? 1 : -1)); res.json({ total: items.length, limited: items.length > LIST_LIMIT, items: items.slice(0, LIST_LIMIT).map(summarise) }); });
+router.get("/", requirePermission("order.view"), (req, res) => {
+  let searchFilters = [];
+  if (req.query.filters) {
+    try { searchFilters = JSON.parse(String(req.query.filters)); } catch { return res.status(400).json({ error: "Filter data must be valid JSON" }); }
+    if (!Array.isArray(searchFilters) || searchFilters.length > 20 || searchFilters.some((filter) => {
+      if (!filter || !SEARCHABLE_ORDER_FIELDS.has(filter.field) || filter.value == null || !["text", "number", "date", "boolean"].includes(filter.type)) return true;
+      const allowed = filter.type === "number" || filter.type === "date" ? ["eq", "neq", "gt", "gte", "lt", "lte"] : filter.type === "boolean" ? ["eq", "neq"] : ["contains", "eq", "neq"];
+      return !allowed.includes(filter.operator);
+    })) return res.status(400).json({ error: "Provide up to 20 valid search filters" });
+  }
+  let items = allOrders().filter((o) => canSeeOrder(req.user, o));
+  const { mode, orderNo, status, q, overdue } = req.query;
+  const like = (v, s) => String(v || "").toLowerCase().includes(String(s).toLowerCase());
+  if (mode) items = items.filter((o) => o.transportMode === mode);
+  if (status) items = items.filter((o) => o.status === status);
+  if (orderNo) items = items.filter((o) => like(o.orderNo, orderNo));
+  if (overdue === "true") items = items.filter(isOverdue);
+  if (q) { const s = String(q).toLowerCase(); items = items.filter((o) => [o.reference, o.orderNo, o.supplierName, o.buyerName, o.goodsDescription, o.cwShipmentNumber].filter(Boolean).some((v) => String(v).toLowerCase().includes(s))); }
+  if (searchFilters.length) items = items.filter((order) => searchFilters.every((filter) => matchesSearchFilter(order, filter)));
+  items.sort((a, b) => (a.updatedAt === b.updatedAt ? 0 : String(b.updatedAt) > String(a.updatedAt) ? 1 : -1));
+  res.json({ total: items.length, limited: items.length > LIST_LIMIT, items: items.slice(0, LIST_LIMIT).map(summarise) });
+});
 router.get("/:id", requirePermission("order.view"), (req, res) => { const o = findOrder(req.params.id); if (!o) return res.status(404).json({ error: "Order not found" }); if (!canSeeOrder(req.user, o)) return res.status(403).json({ error: "This order is outside your assigned CW organizations" }); res.json({ ...o, documents: (o.documents || []).map(docMeta), overdue: isOverdue(o) }); });
 function applyPartners(o) { if (o.supplierCode) { const d = orgDetails(o.supplierCode); o.supplierName = orgLabel(o.supplierCode); o.supplier = { ...(o.supplier || {}), name: d.name, address: o.supplier?.address || [d.address1, d.address2, d.city, d.state, d.postCode, d.country].filter(Boolean).join(", ") }; } if (o.buyerCode) { const d = orgDetails(o.buyerCode); o.buyerName = orgLabel(o.buyerCode); o.delivery = { ...(o.delivery || {}), name: d.name, address: o.delivery?.address || [d.address1, d.address2, d.city, d.state, d.postCode, d.country].filter(Boolean).join(", ") }; } if (!o.cwOrgCode && o.supplierCode) o.cwOrgCode = o.supplierCode; }
 router.post("/", requirePermission("order.create"), (req, res) => { if (!userHasOrderAccess(req.user)) return res.status(403).json({ error: "You have no Order data scope configured." }); const body = req.body || {}; const errors = validateOrder(body); if (errors.length) return res.status(400).json({ status: "INVALID", errors }); const o = makeOrder({ ...body, bookingId: "", bookingRef: "", createdBy: req.user.name }); applyPartners(o); if (!o.cwOrgCode) o.cwOrgCode = defaultOrderOrg(req.user); o.updatedBy = req.user.name; (o.orderLines || []).forEach((l) => { if (!l.id) l.id = uuid(); }); o.documents = o.documents || []; db.orders.push(o); addAudit({ user: req.user, action: "ORDER_CREATE", entityType: "Order", entityId: o.reference }); res.status(201).json(o); });
@@ -37,4 +79,22 @@ router.get("/template/download", requirePermission("order.import"), (req, res) =
 router.get("/layouts/list", requirePermission("order.view"), (req, res) => res.json({ layouts: db.layouts[req.user.email] || [] }));
 router.post("/layouts", requirePermission("order.view"), (req, res) => { const key = req.user.email; const { name, columns } = req.body || {}; if (!name || !String(name).trim()) return res.status(400).json({ error: "Layout name is required" }); if (!Array.isArray(columns)) return res.status(400).json({ error: "columns must be an array" }); db.layouts[key] = db.layouts[key] || []; const ex = db.layouts[key].find((l) => l.name.toLowerCase() === String(name).trim().toLowerCase()); if (ex) ex.columns = columns; else db.layouts[key].push({ id: uuid(), name: String(name).trim(), columns, createdAt: new Date().toISOString() }); res.status(201).json({ layouts: db.layouts[key] }); });
 router.delete("/layouts/:id", requirePermission("order.view"), (req, res) => { const key = req.user.email; db.layouts[key] = (db.layouts[key] || []).filter((l) => l.id !== req.params.id); res.json({ layouts: db.layouts[key] }); });
+router.get("/filters/list", requirePermission("order.view"), (req, res) => res.json({ layouts: db.orderFilterLayouts[req.user.email] || [] }));
+router.post("/filters", requirePermission("order.view"), (req, res) => {
+  const key = req.user.email;
+  const name = String(req.body?.name || "").trim();
+  const filters = req.body?.filters;
+  if (!name) return res.status(400).json({ error: "Filter layout name is required" });
+  if (!Array.isArray(filters) || filters.length < 1 || filters.length > 20 || filters.some((filter) => !filter || typeof filter.field !== "string" || typeof filter.operator !== "string" || filter.value == null)) return res.status(400).json({ error: "Provide between 1 and 20 valid filters" });
+  db.orderFilterLayouts[key] = db.orderFilterLayouts[key] || [];
+  const existing = db.orderFilterLayouts[key].find((layout) => layout.name.toLowerCase() === name.toLowerCase());
+  if (existing) existing.filters = filters;
+  else db.orderFilterLayouts[key].push({ id: uuid(), name, filters, createdAt: new Date().toISOString() });
+  res.status(201).json({ layouts: db.orderFilterLayouts[key] });
+});
+router.delete("/filters/:id", requirePermission("order.view"), (req, res) => {
+  const key = req.user.email;
+  db.orderFilterLayouts[key] = (db.orderFilterLayouts[key] || []).filter((layout) => layout.id !== req.params.id);
+  res.json({ layouts: db.orderFilterLayouts[key] });
+});
 export default router;

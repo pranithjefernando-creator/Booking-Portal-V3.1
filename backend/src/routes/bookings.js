@@ -7,7 +7,7 @@ import { orgLabel, orgDetails, scopedDirectory } from "../reference.js";
 import { buildBookingXml, buildBookingUpdateXml } from "../lib/cwPayload.js";
 import { sendBookingToCw } from "../lib/cwClient.js";
 const router = Router();
-function summarise(b) { const linkedOrders = (b.orderIds || []).map(findOrder).filter((o) => o && o.bookingId === b.id).map((o) => o.orderNo + (o.orderNoSplit ? `-${o.orderNoSplit}` : "")).filter(Boolean); return { id: b.id, reference: b.reference, status: b.status, mode: b.mode, incotermCode: b.incotermCode, freightTerms: b.freightTerms || "", commodityCode: b.commodityCode || "", originCode: b.originCode, destCode: b.destCode, shipper: b.shipper?.companyName || orgLabel(b.shipperCode), consignee: b.consignee?.companyName || orgLabel(b.consigneeCode), goodsDescription: b.goodsDescription || "", marksAndNumbers: b.marksAndNumbers || "", shipperReferenceNo: b.shipperReferenceNo || "", cargoReadyDate: b.cargoReadyDate, cwOrgCode: b.cwOrgCode || "", cw1ShipmentRef: b.cw1ShipmentRef || "", cwStatus: b.cwStatus || "", cwConverted: !!b.cwConverted, cfsReceived: !!b.cfsReceived, documentCount: (b.documents || []).length, linkedOrders, createdAt: b.createdAt, updatedAt: b.updatedAt, createdBy: b.createdBy }; }
+function summarise(b) { const linkedOrders = (b.orderIds || []).map(findOrder).filter((o) => o && o.bookingId === b.id).map((o) => o.orderNo + (o.orderNoSplit ? `-${o.orderNoSplit}` : "")).filter(Boolean); return { id: b.id, reference: b.reference, status: b.status, mode: b.mode, incotermCode: b.incotermCode, freightTerms: b.freightTerms || "", commodityCode: b.commodityCode || "", originCode: b.originCode, destCode: b.destCode, shipper: b.shipper?.companyName || orgLabel(b.shipperCode), shipperCode: b.shipperCode || "", consignee: b.consignee?.companyName || orgLabel(b.consigneeCode), consigneeCode: b.consigneeCode || "", goodsDescription: b.goodsDescription || "", marksAndNumbers: b.marksAndNumbers || "", shipperReferenceNo: b.shipperReferenceNo || "", cargoReadyDate: b.cargoReadyDate, cwOrgCode: b.cwOrgCode || "", cw1ShipmentRef: b.cw1ShipmentRef || "", cwStatus: b.cwStatus || "", cwConverted: !!b.cwConverted, cfsReceived: !!b.cfsReceived, isDg: !!b.isDg, documentCount: (b.documents || []).length, linkedOrders, createdAt: b.createdAt, updatedAt: b.updatedAt, createdBy: b.createdBy }; }
 function docMeta(d) { return { id: d.id, type: d.type, typeName: d.typeName, fileName: d.fileName, size: d.size, mimeType: d.mimeType || mimeFromName(d.fileName), uploadedBy: d.uploadedBy }; }
 function mimeFromName(name) { const ext = String(name || "").toLowerCase().split(".").pop(); const map = { pdf: "application/pdf", png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", txt: "text/plain", csv: "text/csv", xml: "application/xml", docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document", xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }; return map[ext] || "application/octet-stream"; }
 function buildXmlFor(b) { return b && b.cw1ShipmentRef ? buildBookingUpdateXml(b, b.cw1ShipmentRef) : buildBookingXml(b); }
@@ -45,4 +45,22 @@ router.delete("/:id/documents/:docId", requirePermission("booking.document"), (r
 router.get("/layouts/list", requirePermission("booking.view"), (req, res) => res.json({ layouts: db.bookingLayouts[req.user.email] || [] }));
 router.post("/layouts", requirePermission("booking.view"), (req, res) => { const key = req.user.email; const { name, columns } = req.body || {}; if (!name || !String(name).trim()) return res.status(400).json({ error: "Layout name is required" }); if (!Array.isArray(columns)) return res.status(400).json({ error: "columns must be an array" }); db.bookingLayouts[key] = db.bookingLayouts[key] || []; const ex = db.bookingLayouts[key].find((l) => l.name.toLowerCase() === String(name).trim().toLowerCase()); if (ex) ex.columns = columns; else db.bookingLayouts[key].push({ id: uuid(), name: String(name).trim(), columns, createdAt: new Date().toISOString() }); res.status(201).json({ layouts: db.bookingLayouts[key] }); });
 router.delete("/layouts/:id", requirePermission("booking.view"), (req, res) => { const key = req.user.email; db.bookingLayouts[key] = (db.bookingLayouts[key] || []).filter((l) => l.id !== req.params.id); res.json({ layouts: db.bookingLayouts[key] }); });
+router.get("/filters/list", requirePermission("booking.view"), (req, res) => res.json({ layouts: db.bookingFilterLayouts[req.user.email] || [] }));
+router.post("/filters", requirePermission("booking.view"), (req, res) => {
+  const key = req.user.email;
+  const name = String(req.body?.name || "").trim();
+  const filters = req.body?.filters;
+  if (!name) return res.status(400).json({ error: "Filter layout name is required" });
+  if (!Array.isArray(filters) || filters.length < 1 || filters.length > 20 || filters.some((filter) => !filter || typeof filter.field !== "string" || typeof filter.operator !== "string" || filter.value == null)) return res.status(400).json({ error: "Provide between 1 and 20 valid filters" });
+  db.bookingFilterLayouts[key] = db.bookingFilterLayouts[key] || [];
+  const existing = db.bookingFilterLayouts[key].find((layout) => layout.name.toLowerCase() === name.toLowerCase());
+  if (existing) existing.filters = filters;
+  else db.bookingFilterLayouts[key].push({ id: uuid(), name, filters, createdAt: new Date().toISOString() });
+  res.status(201).json({ layouts: db.bookingFilterLayouts[key] });
+});
+router.delete("/filters/:id", requirePermission("booking.view"), (req, res) => {
+  const key = req.user.email;
+  db.bookingFilterLayouts[key] = (db.bookingFilterLayouts[key] || []).filter((layout) => layout.id !== req.params.id);
+  res.json({ layouts: db.bookingFilterLayouts[key] });
+});
 export default router;
