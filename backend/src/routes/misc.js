@@ -1,4 +1,4 @@
-import { Router } from "../lib/http.js";
+﻿import { Router } from "../lib/http.js";
 import { changePassword, issueInitialPassword, removeCredentials, mustChangePassword } from "../auth.js";
 import { db, newUser, canSeeBooking } from "../db.js";
 import { requirePermission, permissionMatrix, PERMISSIONS, MODULES, MODULE_GROUPS, effectiveModules } from "../rbac.js";
@@ -8,9 +8,30 @@ import { RULE_FIELDS } from "../validation.js";
 import { uuid } from "../db.js";
 import { allOrders } from "../lib/orderDb.js";
 import { trackingOrganizations, trackingPartyOptions, trackingRecords } from "../lib/trackingAccess.js";
+import { FIELD_CATALOG } from "../fieldVisibilityCatalog.js";
 const router = Router();
 const filterOrgs = (arr) => (Array.isArray(arr) ? arr.filter((c) => isKnownOrg(c)) : []);
 const filterMods = (arr) => (Array.isArray(arr) ? arr.filter((m) => MODULES[m]) : []);
+const visibilityAssignmentKeys = { booking: "bookingVisibilityProfileId", order: "orderVisibilityProfileId" };
+function visibilityAssignments(input) {
+  const assignments = {};
+  for (const [module, key] of Object.entries(visibilityAssignmentKeys)) {
+    if (!Object.hasOwn(input, key)) continue;
+    const id = input[key];
+    if (id !== null && typeof id !== "string") return { error: `Invalid ${module} visibility profile` };
+    if (id && !db.fieldVisibilityProfiles.some((profile) => profile.id === id && profile.module === module)) return { error: `Unknown ${module} visibility profile` };
+    assignments[key] = id || "";
+  }
+  return { assignments };
+}
+function normalizeVisibilityProfile(input, existing = {}) {
+  if (typeof input?.name !== "string" || !input.name.trim()) return { error: "Profile name is required" };
+  if (!Object.hasOwn(FIELD_CATALOG, input.module)) return { error: "Invalid profile module" };
+  if (!Array.isArray(input.hiddenFields)) return { error: "Hidden fields must be an array" };
+  const fields = new Map(FIELD_CATALOG[input.module].map((field) => [field.key, field]));
+  if (input.hiddenFields.some((key) => typeof key !== "string" || !fields.has(key) || fields.get(key).required)) return { error: "Hidden fields must be recognized optional fields" };
+  return { profile: { id: existing.id || uuid(), name: input.name.trim(), module: input.module, hiddenFields: [...new Set(input.hiddenFields)] } };
+}
 function normalizeRuleConfiguration(input, existing = {}) {
   const name = String(input?.name || "").trim();
   if (!name) return { error: "Configuration name is required" };
@@ -38,15 +59,38 @@ router.get("/audit-logs", requirePermission("audit.view"), (req, res) => res.jso
 router.get("/rbac/matrix", requirePermission("dashboard.view"), (req, res) => res.json({ roles: Object.keys(db.roles), matrix: permissionMatrix() }));
 router.get("/rbac/catalog", requirePermission("dashboard.view"), (req, res) => res.json({ permissions: PERMISSIONS, modules: MODULES, moduleGroups: MODULE_GROUPS }));
 router.get("/users", requirePermission("admin.users"), (req, res) => res.json({ total: db.users.length, items: db.users }));
+router.get("/field-visibility-profiles", requirePermission("admin.users"), (req, res) => res.json({ items: db.fieldVisibilityProfiles }));
+router.post("/field-visibility-profiles", requirePermission("admin.users"), (req, res) => {
+  const result = normalizeVisibilityProfile(req.body);
+  if (result.error) return res.status(400).json({ error: result.error });
+  db.fieldVisibilityProfiles.push(result.profile);
+  res.status(201).json(result.profile);
+});
+router.put("/field-visibility-profiles/:id", requirePermission("admin.users"), (req, res) => {
+  const profile = db.fieldVisibilityProfiles.find((item) => item.id === req.params.id);
+  if (!profile) return res.status(404).json({ error: "Visibility profile not found" });
+  const result = normalizeVisibilityProfile(req.body, profile);
+  if (result.error) return res.status(400).json({ error: result.error });
+  if (profile.module !== result.profile.module && db.users.some((user) => user[visibilityAssignmentKeys[profile.module]] === profile.id)) return res.status(409).json({ error: "Unassign this profile before changing its module" });
+  Object.assign(profile, result.profile);
+  res.json(profile);
+});
+router.delete("/field-visibility-profiles/:id", requirePermission("admin.users"), (req, res) => {
+  const profile = db.fieldVisibilityProfiles.find((item) => item.id === req.params.id);
+  if (!profile) return res.status(404).json({ error: "Visibility profile not found" });
+  if (db.users.some((user) => user[visibilityAssignmentKeys[profile.module]] === profile.id)) return res.status(409).json({ error: "Unassign this profile from users before deleting it" });
+  db.fieldVisibilityProfiles = db.fieldVisibilityProfiles.filter((item) => item.id !== profile.id);
+  res.json({ ok: true });
+});
 router.get("/rule-fields", requirePermission("admin.users"), (req, res) => res.json(RULE_FIELDS));
 router.get("/rule-configurations", requirePermission("admin.users"), (req, res) => res.json({ items: db.ruleConfigurations }));
 router.post("/rule-configurations", requirePermission("admin.users"), (req, res) => { const result = normalizeRuleConfiguration(req.body); if (result.error) return res.status(400).json({ error: result.error }); db.ruleConfigurations.push(result.configuration); res.status(201).json(result.configuration); });
 router.put("/rule-configurations/:id", requirePermission("admin.users"), (req, res) => { const existing = db.ruleConfigurations.find((item) => item.id === req.params.id); if (!existing) return res.status(404).json({ error: "Rule configuration not found" }); const result = normalizeRuleConfiguration(req.body, existing); if (result.error) return res.status(400).json({ error: result.error }); Object.assign(existing, result.configuration); res.json(existing); });
 router.delete("/rule-configurations/:id", requirePermission("admin.users"), (req, res) => { const configuration = db.ruleConfigurations.find((item) => item.id === req.params.id); if (!configuration) return res.status(404).json({ error: "Rule configuration not found" }); if (db.users.some((user) => user.ruleConfigurationId === configuration.id)) return res.status(409).json({ error: "Unassign this configuration from users before deleting it" }); db.ruleConfigurations = db.ruleConfigurations.filter((item) => item.id !== configuration.id); res.json({ ok: true }); });
 router.get("/users/:id", requirePermission("admin.users"), (req, res) => { const u = db.users.find((x) => x.id === req.params.id); if (!u) return res.status(404).json({ error: "User not found" }); res.json({ user: u, roleModules: (db.roles[u.role] || { modules: [] }).modules }); });
-router.post("/users", requirePermission("admin.users"), (req, res) => { const { name, email, role, branchCode, ruleConfigurationId } = req.body || {}; if (!name || !String(name).trim()) return res.status(400).json({ error: "Full name is required" }); if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email))) return res.status(400).json({ error: "A valid email is required" }); if (db.users.some((u) => u.email.toLowerCase() === String(email).toLowerCase())) return res.status(409).json({ error: "A user with that email already exists" }); if (role && !db.roles[role]) return res.status(400).json({ error: "Unknown role" }); if (ruleConfigurationId && !db.ruleConfigurations.some((item) => item.id === ruleConfigurationId)) return res.status(400).json({ error: "Unknown rule configuration" }); const selectedConfiguration = Object.hasOwn(req.body || {}, "ruleConfigurationId") ? ruleConfigurationId || "" : db.ruleConfigurations[0]?.id || ""; const user = newUser({ name: String(name).trim(), email: String(email).trim(), role: role || "Data Entry", branchCode: branchCode || "CMB", ruleConfigurationId: selectedConfiguration }); db.users.push(user); const initialPassword = issueInitialPassword(user.id); res.status(201).json({ ...user, initialPassword }); });
+router.post("/users", requirePermission("admin.users"), (req, res) => { const { name, email, role, branchCode, ruleConfigurationId } = req.body || {}; if (!name || !String(name).trim()) return res.status(400).json({ error: "Full name is required" }); if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email))) return res.status(400).json({ error: "A valid email is required" }); if (db.users.some((u) => u.email.toLowerCase() === String(email).toLowerCase())) return res.status(409).json({ error: "A user with that email already exists" }); if (role && !db.roles[role]) return res.status(400).json({ error: "Unknown role" }); if (ruleConfigurationId && !db.ruleConfigurations.some((item) => item.id === ruleConfigurationId)) return res.status(400).json({ error: "Unknown rule configuration" }); const visibility = visibilityAssignments(req.body || {}); if (visibility.error) return res.status(400).json({ error: visibility.error }); const selectedConfiguration = Object.hasOwn(req.body || {}, "ruleConfigurationId") ? ruleConfigurationId || "" : db.ruleConfigurations[0]?.id || ""; const user = newUser({ name: String(name).trim(), email: String(email).trim(), role: role || "Data Entry", branchCode: branchCode || "CMB", ruleConfigurationId: selectedConfiguration, ...visibility.assignments }); db.users.push(user); const initialPassword = issueInitialPassword(user.id); res.status(201).json({ ...user, initialPassword }); });
 router.post("/users/:id/rule-configuration", requirePermission("admin.users"), (req, res) => { const user = db.users.find((item) => item.id === req.params.id); if (!user) return res.status(404).json({ error: "User not found" }); const configurationId = req.body?.ruleConfigurationId || ""; if (configurationId && !db.ruleConfigurations.some((item) => item.id === configurationId)) return res.status(400).json({ error: "Unknown rule configuration" }); user.ruleConfigurationId = configurationId; res.json(user); });
-router.put("/users/:id", requirePermission("admin.users"), (req, res) => { const u = db.users.find((x) => x.id === req.params.id); if (!u) return res.status(404).json({ error: "User not found" }); const { name, role, branchCode } = req.body || {}; if (name !== undefined) u.name = String(name).trim() || u.name; if (role !== undefined) { if (!db.roles[role]) return res.status(400).json({ error: "Unknown role" }); u.role = role; } if (branchCode !== undefined) u.branchCode = branchCode; res.json(u); });
+router.put("/users/:id", requirePermission("admin.users"), (req, res) => { const u = db.users.find((x) => x.id === req.params.id); if (!u) return res.status(404).json({ error: "User not found" }); const { name, role, branchCode } = req.body || {}; const visibility = visibilityAssignments(req.body || {}); if (visibility.error) return res.status(400).json({ error: visibility.error }); if (role !== undefined && !db.roles[role]) return res.status(400).json({ error: "Unknown role" }); Object.assign(u, visibility.assignments); if (name !== undefined) u.name = String(name).trim() || u.name; if (role !== undefined) { if (!db.roles[role]) return res.status(400).json({ error: "Unknown role" }); u.role = role; } if (branchCode !== undefined) u.branchCode = branchCode; res.json(u); });
 router.delete("/users/:id", requirePermission("admin.users"), (req, res) => { const idx = db.users.findIndex((x) => x.id === req.params.id); if (idx < 0) return res.status(404).json({ error: "User not found" }); if (db.users[idx].role === "Admin" && db.users.filter((u) => u.role === "Admin").length === 1) return res.status(409).json({ error: "Cannot delete the last Admin" }); removeCredentials(db.users[idx].id); db.users.splice(idx, 1); res.json({ ok: true }); });
 router.post("/users/:id/modules", requirePermission("admin.users"), (req, res) => { const u = db.users.find((x) => x.id === req.params.id); if (!u) return res.status(404).json({ error: "User not found" }); u.modules = filterMods(req.body?.modules); u.modulesConfigured = true; res.json(u); });
 router.post("/users/:id/tracking-scope", requirePermission("admin.users"), async (req, res) => {
@@ -91,7 +135,7 @@ router.post("/orgs/lookup", requirePermission("admin.users"), async (req, res) =
 router.get("/reference/:type", (req, res) => { const list = reference[req.params.type]; if (!list) return res.status(404).json({ error: "Unknown reference type" }); res.json(req.params.type === "cwOrg" ? list.slice(0, 200) : list); });
 router.post("/auth/change-password", changePassword);
 router.post("/users/:id/reset-password", requirePermission("admin.users"), (req, res) => { const u = db.users.find((x) => x.id === req.params.id); if (!u) return res.status(404).json({ error: "User not found" }); res.json({ initialPassword: issueInitialPassword(u.id) }); });
-router.get("/me", (req, res) => { const def = db.roles[req.user.role] || { permissions: [], modules: [] }; res.json({ user: req.user, realRole: req.realRole, mustChangePassword: mustChangePassword(req.user.id), permissions: def.permissions, modules: effectiveModules(req.user), availableRoles: Object.keys(db.roles), availableUsers: db.users.map((u) => ({ id: u.id, name: u.name, email: u.email, role: u.role })) }); });
+router.get("/me", (req, res) => { const def = db.roles[req.user.role] || { permissions: [], modules: [] }; const fieldVisibility = Object.fromEntries(Object.entries(visibilityAssignmentKeys).map(([module, key]) => [module, [...(db.fieldVisibilityProfiles.find((profile) => profile.id === req.user[key] && profile.module === module)?.hiddenFields || [])]])); res.json({ fieldVisibility, user: req.user, realRole: req.realRole, mustChangePassword: mustChangePassword(req.user.id), permissions: def.permissions, modules: effectiveModules(req.user), availableRoles: Object.keys(db.roles), availableUsers: db.users.map((u) => ({ id: u.id, name: u.name, email: u.email, role: u.role })) }); });
 router.get("/notifications/summary", (req, res) => {
   const user = req.user; const def = db.roles[user.role] || { permissions: [] }; const can = (p) => def.permissions.includes(p);
   const visible = db.bookings.filter((b) => canSeeBooking(user, b));
@@ -103,3 +147,4 @@ router.get("/notifications/summary", (req, res) => {
   res.json({ total: items.reduce((s, i) => s + i.count, 0), items });
 });
 export default router;
+

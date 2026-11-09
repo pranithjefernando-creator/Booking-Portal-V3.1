@@ -47,6 +47,12 @@ Congestion authorization happens **before** cache access. The backend cache rema
 
 Scope assignments follow the application's existing in-memory user store and reset on backend restart. Restart the backend after this upgrade, then configure tracking access and organizations. Run `node --test backend/test/trackingAccess.test.js` for authenticated scope and cross-user-cache regressions.
 
+## Booking And Order Field Visibility
+
+Administrators can create separate booking and order **Field Visibility Profiles** in Settings, then assign one of each when creating or configuring a user. Profiles apply to creation and editing forms, including line-item fields. Required fields remain visible. Without an assigned profile, all fields are visible. Profiles are independent of approval rules and cannot be deleted while assigned. Changes take effect when the user's session refreshes or the user signs in again.
+
+Visibility profiles affect the form only; they do not restrict access to underlying data or APIs. Profiles and user assignments follow the existing in-memory user store and are reset when the backend restarts. The backend maintains a standalone copy of the field catalog for validation; keep it synchronized with the frontend catalog when adding or changing fields. Run `node --test backend/test/fieldVisibilityProfiles.test.js` to check profile behavior and catalog consistency.
+
 ## Map Location Reference
 
 Route coordinates use a bundled reference with over 98,000 entries, rather than relying on the old small hard-coded lookup. Sources are UN/LOCODE, exact-code seaport records, country-matched airport records, and unambiguous exact UN/LOCODE matches from Wikidata. Source URLs, revisions and required license notices are retained in `frontend/src/data/location-reference.json`. Reference coordinates identify routing locations, not a shipment's exact live position.

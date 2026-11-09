@@ -1,7 +1,7 @@
 import { randomUUID } from "crypto";
 import { defaultRoles } from "./rbac.js";
 import { reference, orgLabel } from "./reference.js";
-export const db = { users: [], bookings: [], approvals: [], imports: [], audit: [], roles: {}, orders: [], orderImports: [], layouts: {}, bookingLayouts: {}, bookingFilterLayouts: {}, orderFilterLayouts: {}, bookingTemplates: {}, ruleConfigurations: [] };
+export const db = { users: [], bookings: [], approvals: [], imports: [], audit: [], roles: {}, orders: [], orderImports: [], layouts: {}, bookingLayouts: {}, bookingFilterLayouts: {}, orderFilterLayouts: {}, bookingTemplates: {}, ruleConfigurations: [], fieldVisibilityProfiles: [] };
 export const DOC_TYPES = { CIV: "Commercial Invoice", PKL: "Packing List", COO: "Certificate of Origin", BL: "Bill of Lading", DOC: "Document", OTH: "Other" };
 let bookingSeq = 24860, orderSeq = 50120;
 export function nextReference() { bookingSeq += 1; return `BK-0${bookingSeq}`; }
@@ -21,10 +21,11 @@ export function orderBuyerOrgsFor(user) { if (user?.role === "Admin") return (us
 export function toOptions(codes) { return codes.map((c) => ({ code: c, label: orgLabel(c) })); }
 export function defaultBookingOrg(user) { const a = allowedBookingOrgs(user); return a && a.length ? a[0] : ""; }
 export function defaultOrderOrg(user) { const a = allowedOrderOrgs(user); return a && a.length ? a[0] : ""; }
-function newUser(o) { return { id: uuid(), name: "", email: "", role: "Data Entry", branchCode: "CMB", modules: [], bookingOrgs: [], bookingShipperOrgs: [], bookingConsigneeOrgs: [], orderOrgs: [], orderSupplierOrgs: [], orderBuyerOrgs: [], trackingOrgs: [], ruleConfigurationId: "", ...o }; }
+function newUser(o) { return { id: uuid(), name: "", email: "", role: "Data Entry", branchCode: "CMB", modules: [], bookingOrgs: [], bookingShipperOrgs: [], bookingConsigneeOrgs: [], orderOrgs: [], orderSupplierOrgs: [], orderBuyerOrgs: [], trackingOrgs: [], ruleConfigurationId: "", bookingVisibilityProfileId: "", orderVisibilityProfileId: "", ...o }; }
 export { newUser };
 export function seed() {
   db.roles = defaultRoles();
+  db.fieldVisibilityProfiles = [];
   db.ruleConfigurations = [{ id: uuid(), name: "Default booking approvals", enabled: true, rules: [{ id: uuid(), name: "Ocean FCL gross weight > 10,000 KGS", match: "all", conditions: [{ id: uuid(), field: "mode", operator: "eq", value: "Ocean FCL" }, { id: uuid(), field: "cargoLines.totalGrossWeightKg", operator: "gt", value: 10000 }] }] }];
   const defaultRuleConfigurationId = db.ruleConfigurations[0].id;
   db.users = [ newUser({ name: "Pranith Fernando", email: "pranithf@efl.example", role: "Admin", ruleConfigurationId: defaultRuleConfigurationId }), newUser({ name: "Janaka Silva", email: "j.silva@efl.example", role: "Ops", ruleConfigurationId: defaultRuleConfigurationId, orderOrgs: ["INTCOMMIA", "LANKAENG", "FASHIONHUB", "TESTCO", "ACME"], orderSupplierOrgs: ["INTCOMMIA", "LANKAENG", "FASHIONHUB", "TESTCO"], orderBuyerOrgs: ["BAHTELNAS", "ACME", "LRG"] }), newUser({ name: "Abbas Sethwala", email: "abbas.s@efl.example", role: "Manager", ruleConfigurationId: defaultRuleConfigurationId }), newUser({ name: "Maria King", email: "m.king@efl.example", role: "Data Entry", ruleConfigurationId: defaultRuleConfigurationId, branchCode: "DXB", modules: ["dashboard", "bookings", "orders"], bookingOrgs: ["TESTCO", "ACME"], bookingShipperOrgs: ["TESTCO", "ACME"], bookingConsigneeOrgs: ["INTCOMMIA", "LRG"], orderOrgs: ["TESTCO", "ACME"], orderSupplierOrgs: ["TESTCO", "ACME"], orderBuyerOrgs: ["INTCOMMIA", "BAHTELNAS", "LRG"] }) ];

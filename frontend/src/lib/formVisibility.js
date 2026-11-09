@@ -1,0 +1,30 @@
+const fields = (section, entries) => entries.map(([key, label, required]) => ({ section, key, label, required: !!required }));
+
+export const FIELD_CATALOG = {
+  booking: [
+    ...fields("Shipper", [["shipperCode", "Organization", true], ["shipper.code", "Code"], ["shipper.companyName", "Name"], ["shipper.address1", "Address 1"], ["shipper.address2", "Address 2"], ["shipper.city", "City"], ["shipper.state", "State"], ["shipper.postCode", "Postal Code"], ["shipper.country", "Country"]]),
+    ...fields("Consignee", [["consigneeCode", "Organization", true], ["consignee.code", "Code"], ["consignee.companyName", "Name"], ["consignee.address1", "Address 1"], ["consignee.address2", "Address 2"], ["consignee.city", "City"], ["consignee.state", "State"], ["consignee.postCode", "Postal Code"], ["consignee.country", "Country"]]),
+    ...fields("Shipping Information", [["mode", "Mode", true], ["incotermCode", "Incoterms", true], ["freightTerms", "Freight Terms"], ["originCode", "Origin"], ["destCode", "Destination"], ["commodityCode", "Commodity"], ["cargoReadyDate", "Cargo Ready Date", true], ["clientRequestedEta", "Client Requested ETA"], ["shipperReferenceNo", "Shipper Reference No."], ["goodsDescription", "Goods Description", true], ["marksAndNumbers", "Marks & Numbers"]]),
+    ...fields("Cargo Details", [["cargoLines.packages", "Packages", true], ["cargoLines.packageTypeCode", "Type", true], ["cargoLines.grossWeight", "Gross Weight", true], ["cargoLines.weightUnit", "Weight Unit"], ["cargoLines.volume", "Volume"], ["cargoLines.volumeUnit", "Volume Unit"], ["cargoLines.hsCode", "HS Code"], ["cargoLines.poNumbers", "PO Numbers"], ["cargoLines.orderId", "Linked Order"]]),
+    ...fields("Container Requirement", [["containers.containerTypeCode", "Container Type/Size", true], ["containers.count", "Count", true]]),
+    ...fields("Dangerous Goods", [["isDg", "DG / Hazardous?", true], ["dg.unNumber", "UN Number"], ["dg.properShippingName", "Proper Shipping Name"], ["dg.dgClass", "Class"], ["dg.packingGroup", "Packing Group"], ["dg.specialHandling", "Special Handling"]]),
+    ...fields("Pickup Details", [["pickupRequired", "Pickup Required?", true], ["pickup.phone", "Pickup Phone/Email"], ["pickup.contact", "Pickup Contact"], ["pickup.address", "Pickup Address"], ["pickup.estimatedPickup", "Estimated Pick Up"], ["pickup.requiredDate", "Required Date"], ["pickup.estimatedDelivery", "Estimated Delivery"], ["pickup.deliveryRequiredBy", "Delivery Required By"]]),
+    ...fields("Dates", [["dates.requiredPickup", "Required Pickup"], ["dates.requiredEtd", "Required ETD"], ["dates.requiredEta", "Required ETA"], ["dates.requestedDelivery", "Requested Delivery"]]),
+    ...fields("References and Documents", [["handlingRemarks", "Handling Info / Remarks"], ["documentsAccompanying", "Documents Accompanying Shipment"], ["documents", "Documents"], ["notes", "Notes"]])
+  ],
+  order: [
+    ...fields("Order Information", [["orderNo", "Order No", true], ["orderNoSplit", "Order No Split"], ["orderDate", "Order Date", true], ["transportMode", "Transport Mode", true], ["containerMode", "Container Mode"], ["supplierCode", "Supplier", true], ["buyerCode", "Buyer", true], ["clientCode", "Client Code"], ["bookingConfRef", "Booking Confirmed Ref"], ["aritziaSeason", "Aritzia Season"], ["shipToLocation", "Ship To Location"], ["originCode", "Origin"], ["destCode", "Destination"], ["loadPort", "Load Port"], ["dischargePort", "Discharge Port"], ["requiredDeliveryDate", "Required Delivery Date"], ["bookingConfirmedDate", "Booking Confirmed Date"], ["orderCreatedDate", "Order Created Date"], ["exFactoryEstDate", "Ex Factory Estimate Date"], ["serviceLevel", "Service Level"], ["departureEstDate", "Departure Estimate Date"], ["cargoAvailableDate", "Cargo Available Date"], ["cancelledDate", "Cancelled Date"], ["ndcDate", "NDC Date"], ["poApprovalDate", "PO Approval Date"], ["doNotShipBeforeDate", "Do Not Ship Before Date"], ["afPoDescription", "A&F PO Description"], ["status", "Status"], ["incoTerms", "INCO Terms"]]),
+    ...fields("Order Details", [["weight", "Weight"], ["weightUom", "Weight UOM"], ["volume", "Volume"], ["volumeUom", "Volume UOM"], ["quantity", "Quantity"], ["quantityUom", "Quantity UOM"], ["goodsDescription", "Goods Description"]]),
+    ...fields("Supplier Information", [["supplier.name", "Name"], ["supplier.address", "Address"]]),
+    ...fields("Delivery Information", [["delivery.name", "Name"], ["delivery.address", "Address"]]),
+    ...fields("Manufacturer Information", [["manufacturer.name", "Name"], ["manufacturer.address", "Address"]]),
+    ...fields("Shipment Information", [["cwShipmentNumber", "CW Shipment Number"], ["housebillNumber", "Housebill Number"], ["etd", "ETD"], ["eta", "ETA"]]),
+    ...fields("Order Lines", [["orderLines.lineNo", "Line#"], ["orderLines.partNumber", "Part No"], ["orderLines.partDescription", "Description"], ["orderLines.outerPacks", "Outer Packs"], ["orderLines.outerPacksType", "Outer Packs Qty"], ["orderLines.weight", "Weight"], ["orderLines.weightUom", "Weight UOM"], ["orderLines.volume", "Volume"], ["orderLines.volumeUom", "Volume UOM"], ["orderLines.countryOfOrigin", "Country of Origin"], ["orderLines.additionalInformation", "Additional Information"], ["orderLines.hsCode", "HS Code"], ["orderLines.innerPacks", "Inner Packs"], ["orderLines.innerPacksUom", "Inner Packs UOM"], ["orderLines.outerPackLength", "Outer Pack Length"], ["orderLines.outerPackHeight", "Outer Pack Height"], ["orderLines.outerPackWidth", "Outer Pack Width"], ["orderLines.outerPackDimensionUnit", "Outer Pack Dimension"], ["orderLines.partAttribute1", "Part Attribute 1"], ["orderLines.partAttribute2", "Part Attribute 2"], ["orderLines.itemPrice", "Price"]]),
+    ...fields("Other", [["bookingRef", "Linked Booking"], ["documents", "Documents"], ["notes", "Notes"]])
+  ]
+};
+
+export function isFieldVisible(module, hiddenFields, key) {
+  const field = FIELD_CATALOG[module]?.find((item) => item.key === key);
+  return !field || field.required || !Array.isArray(hiddenFields) || !hiddenFields.includes(key);
+}
