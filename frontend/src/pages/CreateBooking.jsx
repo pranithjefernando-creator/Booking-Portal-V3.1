@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { api } from "../api.js";
 import { Field, Select, Banner, PageBanner, Spinner, StatusBadge, DocViewer, Modal } from "../components/ui.jsx";
+import { cargoValuesFromOrder } from "../lib/bookingOrderMapping.js";
 const eCargo = () => ({ packages: "", packageTypeCode: "", grossWeight: "", weightUnit: "KGS", volume: "", volumeUnit: "M3", hsCode: "", poNumbers: "", orderId: "" });
 const eCont = () => ({ containerTypeCode: "", count: "" });
 const eParty = () => ({ code: "", companyName: "", address1: "", address2: "", city: "", state: "", postCode: "", country: "" });
@@ -19,6 +20,7 @@ export default function CreateBooking() {
   const [docs, setDocs] = useState([]); const [pendingDocs, setPendingDocs] = useState([]); const [docType, setDocType] = useState("CIV"); const [viewDoc, setViewDoc] = useState(null); const [docBusy, setDocBusy] = useState(false);
   const [templates, setTemplates] = useState([]); const [tplModal, setTplModal] = useState(false); const [tplName, setTplName] = useState("");
   const [orders, setOrders] = useState([]); const [ordersEnabled, setOrdersEnabled] = useState(false); const [initialOrderIds, setInitialOrderIds] = useState(() => new Set());
+  const [orderSearchByLine, setOrderSearchByLine] = useState({});
   const fileRef = React.useRef();
   const loadTemplates = () => api.get("/bookings/templates").then((d) => setTemplates(d.templates || [])).catch(() => {});
   const loadOrders = () => api.get("/orders").then((d) => { setOrders(d.items || []); setOrdersEnabled(true); }).catch(() => setOrdersEnabled(false));
@@ -35,15 +37,59 @@ export default function CreateBooking() {
   const errFor = (f) => errors.find((e) => e.field === f)?.message;
   const setCargo = (i, k, v) => setB((prev) => ({ ...prev, cargoLines: prev.cargoLines.map((l, x) => x === i ? { ...l, [k]: v } : l) }));
   const setCont = (i, k, v) => setB((prev) => ({ ...prev, containers: prev.containers.map((c, x) => x === i ? { ...c, [k]: v } : c) }));
-  const orderOptions = (lineOrderId) => orders.filter((o) => !o.bookingId || o.bookingId === id || o.id === lineOrderId).map((o) => ({ code: o.id, label: `${o.orderNo}${o.orderNoSplit ? "-" + o.orderNoSplit : ""} \u00b7 ${o.goodsDescription || o.supplierName || ""}` }));
+  const orderLabel = (order) => `${order.orderNo}${order.orderNoSplit ? "-" + order.orderNoSplit : ""} \u00b7 ${order.goodsDescription || order.supplierName || order.id}`;
+  const orderOptions = (lineOrderId) => orders.filter((o) => !o.bookingId || o.bookingId === id || o.id === lineOrderId).map((o) => ({ code: o.id, label: orderLabel(o) }));
+  const searchableOrders = () => orders.filter((o) => !o.bookingId || o.bookingId === id || b.cargoLines.some((line) => line.orderId === o.id)).map((o) => ({ code: o.id, label: orderLabel(o) }));
+  async function selectOrder(i, orderId) {
+    setCargo(i, "orderId", orderId);
+    if (!orderId) return;
+    try {
+      const order = await api.get(`/orders/${orderId}`);
+      const values = cargoValuesFromOrder(order);
+      setB((prev) => ({ ...prev, cargoLines: prev.cargoLines.map((line, index) => index === i && line.orderId === orderId ? { ...line, ...values } : line) }));
+    } catch (e) {
+      setBanner({ tone: "error", msg: `Could not load the selected order: ${e.message}` });
+    }
+  }
+  function searchOrder(i, value) {
+    const option = searchableOrders().find((item) => item.label === value);
+    setOrderSearchByLine((prev) => ({ ...prev, [i]: value }));
+    if (option) {
+      selectOrder(i, option.code);
+    } else if (b.cargoLines[i]?.orderId) {
+      setCargo(i, "orderId", "");
+    }
+  }
   async function reconcileOrderLinks(saved) {
     const selected = new Set(b.cargoLines.map((l) => l.orderId).filter(Boolean));
     const toLink = [...selected].filter((x) => !initialOrderIds.has(x));
     const toUnlink = [...initialOrderIds].filter((x) => !selected.has(x));
     if (!toLink.length && !toUnlink.length) return;
-    for (const oid of toLink) { try { await api.post(`/orders/${oid}/link-booking`, { bookingId: saved.id }); } catch (_) {} }
-    for (const oid of toUnlink) { try { await api.post(`/orders/${oid}/unlink-booking`); } catch (_) {} }
-    setInitialOrderIds(selected); loadOrders();
+    const linked = new Set(initialOrderIds);
+    for (const oid of toLink) {
+      try {
+        await api.post(`/orders/${oid}/link-booking`, { bookingId: saved.id });
+        linked.add(oid);
+      } catch (e) {
+        setInitialOrderIds(linked);
+        loadOrders();
+        const orderNo = orders.find((order) => order.id === oid)?.orderNo || oid;
+        return `order ${orderNo} could not be linked: ${e.message}`;
+      }
+    }
+    for (const oid of toUnlink) {
+      try {
+        await api.post(`/orders/${oid}/unlink-booking`);
+        linked.delete(oid);
+      } catch (e) {
+        setInitialOrderIds(linked);
+        loadOrders();
+        const orderNo = orders.find((order) => order.id === oid)?.orderNo || oid;
+        return `order ${orderNo} could not be unlinked: ${e.message}`;
+      }
+    }
+    setInitialOrderIds(linked);
+    loadOrders();
   }
   function pickOrg(which, code) { const d = (orgs.directory && orgs.directory[code]) || null; const party = d ? { code: d.code, companyName: d.name, address1: d.address1, address2: d.address2, city: d.city, state: d.state, postCode: d.postCode, country: d.country } : eParty(); setB((prev) => ({ ...prev, [`${which}Code`]: code, [which]: party })); }
   const norm = (bk) => stripCw({ ...bk, cargoLines: bk.cargoLines.map((l) => ({ ...l, packages: Number(l.packages) || 0, grossWeight: Number(l.grossWeight) || 0, volume: l.volume === "" ? "" : Number(l.volume) })), containers: (bk.containers || []).map((c) => ({ ...c, count: Number(c.count) || 0 })) });
@@ -54,9 +100,9 @@ export default function CreateBooking() {
   async function deleteDoc(docId) { try { const r = await api.del(`/bookings/${id}/documents/${docId}`); setDocs(r.documents || []); } catch (e) { setBanner({ tone: "error", msg: e.message }); } }
   const removePending = (i) => setPendingDocs((p) => p.filter((_, x) => x !== i));
   async function persist() { setSaving(true); setBanner(null); setErrors([]); try { const saved = isEdit ? await api.put(`/bookings/${id}`, norm(b)) : await api.post("/bookings", norm(b)); if (!isEdit && pendingDocs.length) { for (const pd of pendingDocs) { try { await api.uploadDoc(`/bookings/${saved.id}/documents`, pd.file, pd.type); } catch (_) {} } setPendingDocs([]); } return saved; } catch (e) { if (e.status === 400 && e.data?.errors) { setErrors(e.data.errors); setBanner({ tone: "error", msg: `${e.data.errors.length} issue(s) to fix.` }); } else setBanner({ tone: "error", msg: e.message }); return null; } finally { setSaving(false); } }
-  async function saveDraft() { const s = await persist(); if (!s) return; await reconcileOrderLinks(s); setBanner({ tone: "success", msg: `${s.reference} saved. Redirecting…` }); setTimeout(() => navigate(`/bookings/${s.id}`), 800); }
-  async function saveValidate() { const saved = await persist(); if (!saved) return; await reconcileOrderLinks(saved); try { const v = await api.post(`/bookings/${saved.id}/validate`); setBanner({ tone: "success", msg: `${saved.reference} validated.${v.requiresApproval ? " Requires approval." : ""} Redirecting…` }); setTimeout(() => navigate(`/bookings/${saved.id}`), 900); } catch (ve) { if (ve.status === 400 && ve.data?.errors) { setErrors(ve.data.errors); setBanner({ tone: "error", msg: `Saved as ${saved.reference}. ${ve.data.errors.length} issue(s) before validate.` }); } else setBanner({ tone: "error", msg: ve.message }); } }
-  async function saveAndSendUpdate() { const saved = await persist(); if (!saved) return; await reconcileOrderLinks(saved); try { const r = await api.post(`/bookings/${id}/resend-cw`); const cw = r.cw || {}; if (cw.ok) { setBanner({ tone: "success", msg: `Update sent to CargoWise (booking ${r.cw1ShipmentRef}). Redirecting…` }); setTimeout(() => navigate(`/bookings/${id}`), 1000); } else setBanner({ tone: "error", msg: `Saved, but CW update failed: ${cw.error || "HTTP " + cw.status}.` }); } catch (e) { setBanner({ tone: "error", msg: `Saved, but CW update failed: ${e.message}` }); } }
+  async function saveDraft() { const s = await persist(); if (!s) return; const linkError = await reconcileOrderLinks(s); if (linkError) { setBanner({ tone: "error", msg: `${s.reference} saved, but ${linkError}` }); return; } setBanner({ tone: "success", msg: `${s.reference} saved. Redirecting…` }); setTimeout(() => navigate(`/bookings/${s.id}`), 800); }
+  async function saveValidate() { const saved = await persist(); if (!saved) return; const linkError = await reconcileOrderLinks(saved); if (linkError) { setBanner({ tone: "error", msg: `${saved.reference} saved, but ${linkError}` }); return; } try { const v = await api.post(`/bookings/${saved.id}/validate`); setBanner({ tone: "success", msg: `${saved.reference} validated.${v.requiresApproval ? " Requires approval." : ""} Redirecting…` }); setTimeout(() => navigate(`/bookings/${saved.id}`), 900); } catch (ve) { if (ve.status === 400 && ve.data?.errors) { setErrors(ve.data.errors); setBanner({ tone: "error", msg: `Saved as ${saved.reference}. ${ve.data.errors.length} issue(s) before validate.` }); } else setBanner({ tone: "error", msg: ve.message }); } }
+  async function saveAndSendUpdate() { const saved = await persist(); if (!saved) return; const linkError = await reconcileOrderLinks(saved); if (linkError) { setBanner({ tone: "error", msg: `${saved.reference} saved, but ${linkError}` }); return; } try { const r = await api.post(`/bookings/${id}/resend-cw`); const cw = r.cw || {}; if (cw.ok) { setBanner({ tone: "success", msg: `Update sent to CargoWise (booking ${r.cw1ShipmentRef}). Redirecting…` }); setTimeout(() => navigate(`/bookings/${id}`), 1000); } else setBanner({ tone: "error", msg: `Saved, but CW update failed: ${cw.error || "HTTP " + cw.status}.` }); } catch (e) { setBanner({ tone: "error", msg: `Saved, but CW update failed: ${e.message}` }); } }
 
   if (!b) return (<div className="page"><PageBanner title="Edit Booking" subtitle="Update this draft booking." /><Spinner label="Loading booking…" /></div>);
   const renderParty = (title, which) => { const p = b[which] || eParty(); const options = which === "shipper" ? orgs.shipperOrgs : orgs.consigneeOrgs; const codeField = `${which}Code`; return (<div className="card"><div className="section-head">{title}</div><Field label="Organization" required error={errFor(codeField)} hint="Selecting an organization auto-fills the address below"><Select value={b[codeField]} onChange={(v) => pickOrg(which, v)} options={options} placeholder={`Select ${which} org…`} disabled={readOnly} /></Field><div className="form-grid form-grid-2" style={{ marginTop: 12 }}><Field label="Code"><input value={p.code || ""} readOnly className="ro" /></Field><Field label="Name"><input value={p.companyName || ""} readOnly className="ro" /></Field><Field label="Address 1"><input value={p.address1 || ""} readOnly className="ro" /></Field><Field label="Address 2"><input value={p.address2 || ""} readOnly className="ro" /></Field><Field label="City"><input value={p.city || ""} readOnly className="ro" /></Field><Field label="State"><input value={p.state || ""} readOnly className="ro" /></Field><Field label="Postal Code"><input value={p.postCode || ""} readOnly className="ro" /></Field><Field label="Country"><input value={p.country || ""} readOnly className="ro" /></Field></div></div>); };
@@ -86,7 +132,7 @@ export default function CreateBooking() {
       <Field label="Marks &amp; Numbers" hint="Shipping marks / carton numbers"><textarea rows={2} value={b.marksAndNumbers} onChange={(e) => set({ marksAndNumbers: e.target.value })} disabled={readOnly} placeholder="e.g. CTNS 1-120 / MADE IN LK" /></Field>
     </div></div>
 
-    <div className="card"><div className="section-head with-btn"><span>Cargo Details</span>{!readOnly && <button className="btn btn-ghost btn-sm" onClick={() => set({ cargoLines: [...b.cargoLines, eCargo()] })}>+ Add cargo line</button>}</div>{errFor("cargoLines") && <div className="inline-err">{errFor("cargoLines")}</div>}<div className="scroll-x"><table className="table compact"><thead><tr><th>Packages *</th><th>Type *</th><th>Gross Wt *</th><th>Unit</th><th>Volume</th><th>Vol Unit</th><th>HS Code</th><th>PO Numbers</th>{ordersEnabled && <th>Linked Order</th>}<th></th></tr></thead><tbody>{b.cargoLines.map((l, i) => (<tr key={i}><td><input type="number" value={l.packages} onChange={(e) => setCargo(i, "packages", e.target.value)} disabled={readOnly} /></td><td><Select value={l.packageTypeCode} onChange={(v) => setCargo(i, "packageTypeCode", v)} options={ref.packageType || []} placeholder="—" disabled={readOnly} /></td><td><input type="number" value={l.grossWeight} onChange={(e) => setCargo(i, "grossWeight", e.target.value)} disabled={readOnly} /></td><td><Select value={l.weightUnit} onChange={(v) => setCargo(i, "weightUnit", v)} options={ref.weightUnit || []} placeholder="KGS" disabled={readOnly} /></td><td><input type="number" value={l.volume} onChange={(e) => setCargo(i, "volume", e.target.value)} disabled={readOnly} /></td><td><Select value={l.volumeUnit} onChange={(v) => setCargo(i, "volumeUnit", v)} options={ref.volumeUnit || []} placeholder="M3" disabled={readOnly} /></td><td><input value={l.hsCode} onChange={(e) => setCargo(i, "hsCode", e.target.value)} placeholder="e.g. 6109.10" disabled={readOnly} /></td><td><input value={l.poNumbers} onChange={(e) => setCargo(i, "poNumbers", e.target.value)} placeholder="Key in manually" disabled={readOnly} /></td>{ordersEnabled && <td><Select value={l.orderId} onChange={(v) => setCargo(i, "orderId", v)} options={orderOptions(l.orderId)} placeholder="Not linked" disabled={readOnly} /></td>}<td>{!readOnly && b.cargoLines.length > 1 && <button className="btn-x" onClick={() => set({ cargoLines: b.cargoLines.filter((_, x) => x !== i) })}>×</button>}</td></tr>))}</tbody></table></div></div>
+    <div className="card"><div className="section-head with-btn"><span>Cargo Details</span>{!readOnly && <button className="btn btn-ghost btn-sm" onClick={() => set({ cargoLines: [...b.cargoLines, eCargo()] })}>+ Add cargo line</button>}</div>{errFor("cargoLines") && <div className="inline-err">{errFor("cargoLines")}</div>}<div className="scroll-x"><table className="table compact"><thead><tr><th>Packages *</th><th>Type *</th><th>Gross Wt *</th><th>Unit</th><th>Volume</th><th>Vol Unit</th><th>HS Code</th><th>PO Numbers</th>{ordersEnabled && <th>Linked Order</th>}<th></th></tr></thead><tbody>{b.cargoLines.map((l, i) => (<tr key={i}><td><input type="number" value={l.packages} onChange={(e) => setCargo(i, "packages", e.target.value)} disabled={readOnly} /></td><td><Select value={l.packageTypeCode} onChange={(v) => setCargo(i, "packageTypeCode", v)} options={ref.packageType || []} placeholder="—" disabled={readOnly} /></td><td><input type="number" value={l.grossWeight} onChange={(e) => setCargo(i, "grossWeight", e.target.value)} disabled={readOnly} /></td><td><Select value={l.weightUnit} onChange={(v) => setCargo(i, "weightUnit", v)} options={ref.weightUnit || []} placeholder="KGS" disabled={readOnly} /></td><td><input type="number" value={l.volume} onChange={(e) => setCargo(i, "volume", e.target.value)} disabled={readOnly} /></td><td><Select value={l.volumeUnit} onChange={(v) => setCargo(i, "volumeUnit", v)} options={ref.volumeUnit || []} placeholder="M3" disabled={readOnly} /></td><td><input value={l.hsCode} onChange={(e) => setCargo(i, "hsCode", e.target.value)} placeholder="e.g. 6109.10" disabled={readOnly} /></td><td><input value={l.poNumbers} onChange={(e) => setCargo(i, "poNumbers", e.target.value)} placeholder="Key in manually" disabled={readOnly} /></td>{ordersEnabled && <td><input type="text" list="booking-order-options" value={orderSearchByLine[i] ?? orderOptions(l.orderId).find((option) => option.code === l.orderId)?.label ?? ""} onChange={(e) => searchOrder(i, e.target.value)} placeholder="Type to search orders" disabled={readOnly} /></td>}<td>{!readOnly && b.cargoLines.length > 1 && <button className="btn-x" onClick={() => set({ cargoLines: b.cargoLines.filter((_, x) => x !== i) })}>×</button>}</td></tr>))}</tbody></table></div>{ordersEnabled && <datalist id="booking-order-options">{searchableOrders().map((option) => <option key={option.code} value={option.label} />)}</datalist>}</div>
 
     {b.mode === "Ocean FCL" && (<div className="card"><div className="section-head">Container Requirement (Ocean FCL)</div>{b.containers.map((c, i) => (<div className="form-grid form-grid-4" key={i}><Field label="Container Type/Size" required><Select value={c.containerTypeCode} onChange={(v) => setCont(i, "containerTypeCode", v)} options={ref.containerType || []} disabled={readOnly} /></Field><Field label="Count" required><input type="number" value={c.count} onChange={(e) => setCont(i, "count", e.target.value)} disabled={readOnly} /></Field></div>))}</div>)}
 
