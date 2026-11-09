@@ -1,0 +1,119 @@
+UI Field in shpiment search,Excel Mapping,SQL Table Name,SQL Table Column Mapping,Remarks
+ID,Tracking - Search Fields Data > Shipment ID,sdb.Shipment_with_Routing_Legs,ShipmentID,
+Consignee,Tracking - Search Fields Data > Consignee Name,sdb.Shipment_with_Routing_Legs,Consignee Name,
+Shipper,Tracking - Search Fields Data > Consignor Name,sdb.Shipment_with_Routing_Legs,Consignor Name,
+Origin,Tracking - Search Fields Data > Origin City,sdb.Shipment_with_Routing_Legs,Origin,
+Destination,Tracking - Search Fields Data > Destination Country,sdb.Shipment_with_Routing_Legs,Destination Country,
+Mode,Tracking - Search Fields Data > Trans,sdb.Shipment_with_Routing_Legs,Trans,
+Container Mode,Tracking - Search Fields Data > Mode,sdb.Shipment_with_Routing_Legs,Mode,new column to be added
+Status,Not Available Now,sdb.Shipment_with_Routing_Legs,,Pick from the progress tracking bar status and show the current status
+ETA,Tracking - Search Fields Data > Destination ETA,sdb.Shipment_with_Routing_Legs,Destination ETA,
+ETD,Tracking - Search Fields Data > Origin ETD,sdb.Shipment_with_Routing_Legs,Origin ETD,
+Carrier,Tracking - Search Fields Data > Carrier Name,sdb.Shipment_with_Routing_Legs,Carrier Name,
+Container,Tracking - Search Fields Data > ContainerNum,sdb.Shipment_with_Routing_Legs,ContainerNum,
+House Bill,Tracking - Search Fields Data > House Ref,sdb.Shipment_with_Routing_Legs,House Ref,
+Master Bill,Tracking - Search Fields Data > Master,sdb.Shipment_with_Routing_Legs,Master,
+UI Field in command center,Excel Mapping,,,Remarks
+mapped shipment > reference,"Tracking - Command Center Data > House Ref
+Tracking - Command Center Data > ContainerNum
+Tracking - Command Center Data > Order Ref",sdb.Shipment_with_Routing_Legs,"House Ref
+ContainerNum
+Order Ref","Multiple mappings, can track using house, container and PO"
+mapped shipment > mode,Tracking - Command Center Data > Trans,sdb.Shipment_with_Routing_Legs,Trans,
+mapped shipment > status,Not Available Now,,,To be updated lateer
+mapped shipment > lat,Not Available Now,,,To be updated lateer
+mapped shipment > lng,Not Available Now,,,To be updated lateer
+mapped shipment > route,"Tracking - Command Center Data > Leg 1 - Load
+Tracking - Command Center Data > Leg 1 - Discharge
+Tracking - Command Center Data > Leg 2 - Load
+Tracking - Command Center Data > Leg 2 - Discharge
+Tracking - Command Center Data > Leg 3 - Load
+Tracking - Command Center Data > Leg 3 - Discharge
+Tracking - Command Center Data > Leg 4 - Load
+Tracking - Command Center Data > Leg 4 - Discharge",sdb.Shipment_with_Routing_Legs,"Leg 1 - Load
+Leg 1 - Discharge
+Leg 2 - Load
+Leg 2 - Discharge
+Leg 3 - Load
+Leg 3 - Discharge
+Leg 4 - Load
+Leg 4 - Discharge",Multiple columns to look at and display the route
+mapped shipment > vessel,"Tracking - Command Center Data > Vessel
+Tracking - Command Center Data > Flight/Voyage",sdb.Shipment_with_Routing_Legs,"Vessel
+Flight/Voyage","multiple columns to look at.
+Vessel will show the ocean vessel name
+flight/voyage will show the flight number for air and voyage number for ocean"
+mapped shipment > eta,Tracking - Command Center Data > Destination ETA,sdb.Shipment_with_Routing_Legs,ETA Last Dsicharge,
+mapped shipment > originaleta,Tracking - Command Center Data > Last Leg STA,sdb.Shipment_with_Routing_Legs,Last Leg STA,
+mapped shipment > delay,calculate,sdb.Shipment_with_Routing_Legs,Calcualte using eta and originaleta,Calcualte using eta and originaleta
+mapped shipment > risk,Tracking - Command Center Data > ,,,
+mapped shipment > cause,Tracking - Command Center Data > ,,,
+mapped shipment > milestone,Not Available Now,,,To be updated late
+mapped shipment > milestoneeta,Not Available Now,,,To be updated late
+KPI > activeshipments,calculate,sdb.Shipment_with_Routing_Legs,Calculate the number of shipment records as per the mapping done per user and associated Organizations,Calculate the number of shipment records as per the mapping done per user and associated Organizations
+KPI > onschedule,calculate,sdb.Shipment_with_Routing_Legs,Calculate the number of shipment records as per the mapping done per user and associated Organizations,Calculate the number of shipment records as per the mapping done per user and associated Organizations
+KPI > atrisk,calculate,sdb.Shipment_with_Routing_Legs,Calculate the number of shipment records as per the mapping done per user and associated Organizations,Calculate the number of shipment records as per the mapping done per user and associated Organizations
+KPI > critical,calculate,sdb.Shipment_with_Routing_Legs,Calculate the number of shipment records as per the mapping done per user and associated Organizations,Calculate the number of shipment records as per the mapping done per user and associated Organizations
+KPI > arrivingnext7days,calculate,sdb.Shipment_with_Routing_Legs,Calculate the number of shipment records as per the mapping done per user and associated Organizations,Calculate the number of shipment records as per the mapping done per user and associated Organizations
+KPI > customshold,calculate,sdb.Shipment_with_Routing_Legs,Calculate the number of shipment records as per the mapping done per user and associated Organizations,Calculate the number of shipment records as per the mapping done per user and associated Organizations
+route lines > id,Not Available Now,,,
+route lines > mode,Tracking - Command Center Data > Trans,sdb.Shipment_with_Routing_Legs,Trans,
+route lines > path >lat ,calculate,,Calucalte using mapped shipment > route ports,Calucalte using mapped shipment > route ports
+route lines > path >lng,calculate,,Calucalte using mapped shipment > route ports,Calucalte using mapped shipment > route ports
+UI Field in detailed shipment tracking,Excel Mapping,,,Remarks
+ID,Tracking -Shipment Details Data > Shipment ID,sdb.Shipment_with_Routing_Legs,ShipmentID,
+Status,Not Available Now,sdb.Shipment_with_Routing_Legs,Pick from the latest status from tracking progress bar,Pick from the latest status from tracking progress bar
+Mode,Tracking -Shipment Details Data > Trans,sdb.Shipment_with_Routing_Legs,Trans,
+Load,Tracking -Shipment Details Data > Mode,sdb.Shipment_with_Routing_Legs,Mode,
+Route,"Tracking -Shipment Details Data > Leg 1 - Load
+Tracking -Shipment Details Data > Leg 1 - Discharge
+Tracking -Shipment Details Data > Leg 2 - Load
+Tracking -Shipment Details Data > Leg 2 - Discharge
+Tracking -Shipment Details Data > Leg 3 - Load
+Tracking -Shipment Details Data > Leg 3 - Discharge
+Tracking -Shipment Details Data > Leg 4 - Load
+Tracking -Shipment Details Data > Leg 4 - Discharge",sdb.Shipment_with_Routing_Legs,"Leg 1 - Load
+Leg 1 - Discharge
+Leg 2 - Load
+Leg 2 - Discharge
+Leg 3 - Load
+Leg 3 - Discharge
+Leg 4 - Load
+Leg 4 - Discharge",Multiple columns to look at and display the route
+eta,Tracking -Shipment Details Data > Destination ETA,sdb.Shipment_with_Routing_Legs,Destination ETA,
+etatime,Tracking -Shipment Details Data > Destination ETA,sdb.Shipment_with_Routing_Legs,Destination ETA,
+confidence,Not Available Now,,,
+originaleta,Not Available Now,sdb.Shipment_with_Routing_Legs,Destination ETA,
+carriereta,Tracking -Shipment Details Data > ETA Last Discharge,sdb.Shipment_with_Routing_Legs,Last Leg STA,
+aieta,Not Available Now,,,
+customer,Tracking -Shipment Details Data > ,,,Split this column into 2 fields as Consignee and Shipper
+Consignee,Tracking - Search Fields Data > Consignee Name,sdb.Shipment_with_Routing_Legs,Consignee Name,
+Shipper,Tracking - Search Fields Data > Consignor Name,sdb.Shipment_with_Routing_Legs,Consignor Name,
+booking,Tracking -Shipment Details Data > Master,sdb.Shipment_with_Routing_Legs,Shippers Reference,
+hbl,Tracking -Shipment Details Data > House Ref,sdb.Shipment_with_Routing_Legs,House Ref,
+containers,"Tracking -Shipment Details Data > ContainerNum
+Tracking -Shipment Details Data > other
+Tracking -Shipment Details Data > 20F
+Tracking -Shipment Details Data > 20R
+Tracking -Shipment Details Data > 20H
+Tracking -Shipment Details Data > 40F
+Tracking -Shipment Details Data > 40R
+Tracking -Shipment Details Data > 40H
+Tracking -Shipment Details Data > 45F",sdb.Shipment_with_Routing_Legs,"ContainerNum
+other
+20F
+20R
+20H
+40F
+40R
+40H
+45F","multiple columns to look at the container type, if there is a count in the container type column then the same type is applicable for that shipment"
+cargo,Tracking -Shipment Details Data > Goods Description,sdb.Shipment_with_Routing_Legs,Goods Description,
+weight,Tracking -Shipment Details Data > Weight,sdb.Shipment_with_Routing_Legs,Weight,
+weightunit,Tracking -Shipment Details Data > WEIGHT UQ,sdb.Shipment_with_Routing_Legs,Weight UQ,
+volume,Tracking -Shipment Details Data > Volume,sdb.Shipment_with_Routing_Legs,Volume,
+volumeunit,Tracking -Shipment Details Data > Volume UQ,sdb.Shipment_with_Routing_Legs,Volume UQ,
+Milestone > label,,,,
+Milestone > date,,,,
+Milestone > location,,,,
+Milestone > state,,,,

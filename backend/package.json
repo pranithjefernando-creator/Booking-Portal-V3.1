@@ -1,0 +1,1 @@
+{"name":"sbms-backend","version":"13.4.0","type":"module","main":"server.js","engines":{"node":">=18"},"scripts":{"start":"node server.js","test":"node test/panvaya.test.js && node --test test/trackingAccess.test.js && node test/smoke.test.js"},"dependencies":{"csv-parse":"^7.0.3","mssql":"^12.7.10"},"overrides":{"open":"file:./stubs/open"}}

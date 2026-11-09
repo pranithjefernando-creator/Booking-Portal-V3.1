@@ -1,0 +1,1 @@
+{"name":"open","version":"0.0.0-stub","main":"index.js","description":"Local stub: the registry blocks the real 'open'; only used by Azure interactive browser auth, which this app does not use."}

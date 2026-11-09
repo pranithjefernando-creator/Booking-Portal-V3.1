@@ -1,0 +1,73 @@
+Application Field Name,SQL DB Column Name,SQL Table Name,Remarks
+Order Information > Order No,OrderNumber,sdb.ProjectY_OrderHeader,
+Order Information >Order No Split,OrderNumberSplit,sdb.ProjectY_OrderHeader,
+Order Information >Order Date,OrderDate,sdb.ProjectY_OrderHeader,
+Order Information >Transport Mode,OrderTransportMode,sdb.ProjectY_OrderHeader,
+Order Information >Container Mode,ContainerMode,sdb.ProjectY_OrderHeader,Add this new field to the order creation 
+Order Information >Supplier,SupplierCode,sdb.ProjectY_OrderHeader,
+Order Information >Buyer,BuyerCode,sdb.ProjectY_OrderHeader,
+Order Information >Client Code,ClientCode,sdb.ProjectY_OrderHeader,Add this new field to the order creation 
+Order Information >Booking Confirmed Ref,BookingConfRef,sdb.ProjectY_OrderHeader,Add this new field to the order creation 
+Order Information >Aritzia Season,AritziaSeason,sdb.ProjectY_OrderHeader,Add this new field to the order creation 
+Order Information >Ship To Location,Ship ToLocation,sdb.ProjectY_OrderHeader,Add this new field to the order creation 
+Order Information >Origin,Origin,sdb.ProjectY_OrderHeader,
+Order Information >Destination,Destination,sdb.ProjectY_OrderHeader,
+Order Information >Load Port,LoadPort,sdb.ProjectY_OrderHeader,Add this new field to the order creation 
+Order Information >Discharge Port,DischargePort,sdb.ProjectY_OrderHeader,Add this new field to the order creation 
+Order Information >Required Delivery Date,,sdb.ProjectY_OrderHeader,
+Order Information >Booking Confirmed Date,BookingConfirmedDate,sdb.ProjectY_OrderHeader,Add this new field to the order creation 
+Order Information >Order Created Date,OrderCreatedDate,sdb.ProjectY_OrderHeader,Add this new field to the order creation 
+Order Information >Ex Factory Estimate Date,DateExFactoryEst,sdb.ProjectY_OrderHeader,Add this new field to the order creation 
+Order Information >Service Level,ServiceLevel,sdb.ProjectY_OrderHeader,
+Order Information >Departure Estimate Date,DateDepartEst,sdb.ProjectY_OrderHeader,Add this new field to the order creation 
+Order Information >Cargo Available Date,DateCargoAvailableAct,sdb.ProjectY_OrderHeader,Add this new field to the order creation 
+Order Information >Cancelled Date,DateCancelledAct,sdb.ProjectY_OrderHeader,Add this new field to the order creation 
+Order Information >NDC Date,DateNDCEst,sdb.ProjectY_OrderHeader,Add this new field to the order creation 
+Order Information >PO Approval Date,DatePOApprovalEst,sdb.ProjectY_OrderHeader,Add this new field to the order creation 
+Order Information >Do Not Ship Before Date,DateDoNotShipBeforeEst,sdb.ProjectY_OrderHeader,Add this new field to the order creation 
+Order Information >A&F PO Description,A&FPODesc,sdb.ProjectY_OrderHeader,Add this new field to the order creation 
+Order Information >Departure Estimate Date,,sdb.ProjectY_OrderHeader,Add this new field to the order creation 
+Order Information >Status,OrderSatusDescription,sdb.ProjectY_OrderHeader,
+Order Information >INCO Terms,Inco Terms,sdb.ProjectY_OrderHeader,Add this new field to the order creation 
+Order Details > Weight,Weight,sdb.ProjectY_OrderHeader,
+Order Details > Weight UOM,WeightUOM,sdb.ProjectY_OrderHeader,Add this new field to the order creation 
+Order Details > Volume,Volume,sdb.ProjectY_OrderHeader,
+Order Details > Volume UOM,VolumeUOM,sdb.ProjectY_OrderHeader,Add this new field to the order creation 
+Order Details > Quantity,,sdb.ProjectY_OrderHeader,
+Order Details > Goods description,Goods Description,sdb.ProjectY_OrderHeader,
+Supplier Information >  Name,SupplierFullName,sdb.ProjectY_OrderHeader,
+Supplier Information >  Address,"SupplierAddress1,SupplierAddress2,SupplierCity,SupplierState,SupplierPostalCode,SupplierCountryCode",sdb.ProjectY_OrderHeader,
+Delivery Information > Name,BuyerFullName,sdb.ProjectY_OrderHeader,
+Delivery Information > Address,"BuyerAddress1,BuyerAddress2,BuyerCity,BuyerState,BuyerPostalCode,BuyerCountryCode",sdb.ProjectY_OrderHeader,
+Manufacturer Information > Name,ManufacturerFullName,sdb.ProjectY_OrderHeader,Add this new field to the order creation 
+Manufacturer Information > Address,"ManufacturerAddress1,ManufacturerAddress2,ManufacturerCity,ManufacturerState,ManufacturerPostalCode,ManufacturerCountryCode",sdb.ProjectY_OrderHeader,Add this new field to the order creation 
+Shipment Information > CW Shipment Number,,,Do not Map. Keep existing
+Shipment Information > Housebill Number,,,Do not Map. Keep existing
+Shipment Information > ETD,,,Do not Map. Keep existing
+Shipment Information > ETA,,,Do not Map. Keep existing
+Order Lines > Line#,LineNumber,sdb.ProjectY_OrderLines,The OrderNumber column from the OrderHeader table will be the link between the Orderheader and OrderLines table
+Order Lines > Part No,PartNumber,sdb.ProjectY_OrderLines,The OrderNumber column from the OrderHeader table will be the link between the Orderheader and OrderLines table
+Order Lines > Description,PartDescription,sdb.ProjectY_OrderLines,The OrderNumber column from the OrderHeader table will be the link between the Orderheader and OrderLines table
+Order Lines > Outer Packs,OuterPacks,sdb.ProjectY_OrderLines,Add this new field to the order creation. The OrderNumber column from the OrderHeader table will be the link between the Orderheader and OrderLines table
+Order Lines > Outer Packs Qty,OuterPacksType,sdb.ProjectY_OrderLines,Add this new field to the order creation. The OrderNumber column from the OrderHeader table will be the link between the Orderheader and OrderLines table
+Order Lines > Weight,Weight,sdb.ProjectY_OrderLines,Add this new field to the order creation. The OrderNumber column from the OrderHeader table will be the link between the Orderheader and OrderLines table
+Order Lines > Weight UOM,WeightUOM,sdb.ProjectY_OrderLines,Add this new field to the order creation. The OrderNumber column from the OrderHeader table will be the link between the Orderheader and OrderLines table
+Order Lines > Volume,Volume,sdb.ProjectY_OrderLines,Add this new field to the order creation. The OrderNumber column from the OrderHeader table will be the link between the Orderheader and OrderLines table
+Order Lines > Volume UOM,Volume UOM,sdb.ProjectY_OrderLines,Add this new field to the order creation. The OrderNumber column from the OrderHeader table will be the link between the Orderheader and OrderLines table
+Order Lines > Qty,,sdb.ProjectY_OrderLines,Remove this field
+Order Lines > Unit,,sdb.ProjectY_OrderLines,Remove this field
+Order Lines > Country of  Origin,CountryOfOrigin,sdb.ProjectY_OrderLines,Add this new field to the order creation. The OrderNumber column from the OrderHeader table will be the link between the Orderheader and OrderLines table
+Order Lines > Additional Information,AdditionalInformation,sdb.ProjectY_OrderLines,Add this new field to the order creation. The OrderNumber column from the OrderHeader table will be the link between the Orderheader and OrderLines table
+Order Lines > HS Code,HSCode,sdb.ProjectY_OrderLines,Add this new field to the order creation. The OrderNumber column from the OrderHeader table will be the link between the Orderheader and OrderLines table
+Order Lines > Inner Packs,InnerPacks,sdb.ProjectY_OrderLines,Add this new field to the order creation. The OrderNumber column from the OrderHeader table will be the link between the Orderheader and OrderLines table
+Order Lines > Inner Packs UOM,InnerPacksUOM,sdb.ProjectY_OrderLines,Add this new field to the order creation. The OrderNumber column from the OrderHeader table will be the link between the Orderheader and OrderLines table
+Order Lines > Outer Pack Length,OuterPack Length,sdb.ProjectY_OrderLines,Add this new field to the order creation. The OrderNumber column from the OrderHeader table will be the link between the Orderheader and OrderLines table
+Order Lines > Outer Pack Height,OuterPack Height,sdb.ProjectY_OrderLines,Add this new field to the order creation. The OrderNumber column from the OrderHeader table will be the link between the Orderheader and OrderLines table
+Order Lines > Outer Pack Width,OuterPack Width,sdb.ProjectY_OrderLines,Add this new field to the order creation. The OrderNumber column from the OrderHeader table will be the link between the Orderheader and OrderLines table
+Order Lines > Outer Pack Dimension,OuterPack UnitOfDimension,sdb.ProjectY_OrderLines,Add this new field to the order creation. The OrderNumber column from the OrderHeader table will be the link between the Orderheader and OrderLines table
+Order Lines > Part Attribute 1,PartAttrib 1,sdb.ProjectY_OrderLines,Add this new field to the order creation. The OrderNumber column from the OrderHeader table will be the link between the Orderheader and OrderLines table
+Order Lines > Part Attribute 2,PartAttrib 2,sdb.ProjectY_OrderLines,Add this new field to the order creation. The OrderNumber column from the OrderHeader table will be the link between the Orderheader and OrderLines table
+Order Lines > Price,LinePrice,sdb.ProjectY_OrderLines,The OrderNumber column from the OrderHeader table will be the link between the Orderheader and OrderLines table
+Linked Booking > ,,,Do not Map. Keep existing
+Notes > Notes,,,Do not Map. Keep existing
+Documents > ,,,Do not Map. Keep existing

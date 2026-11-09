@@ -1,0 +1,33 @@
+<UniversalShipment>
+  <Shipment>
+    <DataContext>
+      <DataTargetCollection><DataTarget><Type>ForwardingBooking</Type></DataTarget></DataTargetCollection>
+      <CodesMappedToTarget>1</CodesMappedToTarget>
+      <EnterpriseID>EXK</EnterpriseID>
+      <ServerID>TRN</ServerID>
+      <Company><Code>USA</Code></Company>
+    </DataContext>
+    <Branch><Code>MIA</Code></Branch>
+    <GoodsDescription></GoodsDescription>
+    <TransportMode><Code>AIR</Code></TransportMode>
+    <ContainerMode><Code>LSE</Code></ContainerMode>
+    <ShipmentIncoTerm><Code>EXW</Code></ShipmentIncoTerm>
+    <ServiceLevel><Code>STD</Code></ServiceLevel>
+    <OuterPacks>2</OuterPacks>
+    <OuterPacksPackageType><Code>CRT</Code></OuterPacksPackageType>
+    <TotalWeight>284</TotalWeight>
+    <TotalWeightUnit><Code>KG</Code></TotalWeightUnit>
+    <TotalVolume>1</TotalVolume>
+    <TotalVolumeUnit><Code>M3</Code></TotalVolumeUnit>
+    <PortOfOrigin><Code>USMIA</Code></PortOfOrigin>
+    <PortOfDestination><Code>BSNAS</Code></PortOfDestination>
+    <PackingLineCollection>
+      <PackingLine><Weight>231</Weight><WeightUnit><Code>KG</Code></WeightUnit><Volume>1</Volume><VolumeUnit><Code>M3</Code></VolumeUnit><PackQty>1</PackQty><PackType><Code>CRT</Code></PackType><GoodsDescription>TELECOM EQUIPMENT</GoodsDescription><HarmonisedCode /></PackingLine>
+      <PackingLine><Weight>53</Weight><WeightUnit><Code>KG</Code></WeightUnit><Volume>1</Volume><VolumeUnit><Code>M3</Code></VolumeUnit><PackQty>1</PackQty><PackType><Code>CRT</Code></PackType><GoodsDescription>TELECOM EQUIPMENT</GoodsDescription><HarmonisedCode /></PackingLine>
+    </PackingLineCollection>
+    <OrganizationAddressCollection>
+      <OrganizationAddress><AddressType>ConsignorPickupDeliveryAddress</AddressType><OrganizationCode>INTCOMMIA</OrganizationCode><CompanyName>INTCOMEX</CompanyName><Address1>10310 NW 121ST WAY</Address1><AddressOverride>false</AddressOverride><City>MEDLEY</City><Country><Code>US</Code></Country><Postcode>33178</Postcode><State>FL</State></OrganizationAddress>
+      <OrganizationAddress><AddressType>ConsigneeDocumentaryAddress</AddressType><OrganizationCode>BAHTELNAS</OrganizationCode><CompanyName>BAHAMAS TELECOMMUNICATIONS COMPANY</CompanyName><Address1>JOHN KENNEDY DR</Address1><AddressOverride>false</AddressOverride><City>NASSAU</City><Country><Code>BS</Code></Country><Postcode>00000</Postcode><State>BAHAMAS</State></OrganizationAddress>
+    </OrganizationAddressCollection>
+  </Shipment>
+</UniversalShipment>

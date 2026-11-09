@@ -1,0 +1,16 @@
+UI Field,Excel Mapping,Remarks
+ID,Tracking - Search Fields Data > Shipment ID,
+Customer,,Split this column into 2 fields as Consignee and Shipper
+Consignee,Tracking - Search Fields Data > Consignee Name,
+Shipper,Tracking - Search Fields Data > Consignor Name,
+Origin,Tracking - Search Fields Data > Origin City,
+Destination,Tracking - Search Fields Data > Destination Country,
+Mode,Tracking - Search Fields Data > Trans,
+Container Mode,Tracking - Search Fields Data > Mode,new column to be added
+Status,Not Available Now,To be updated late
+ETA,Tracking - Search Fields Data > Destination ETA,
+ETD,Tracking - Search Fields Data > Origin ETD,
+Carrier,Tracking - Search Fields Data > Carrier Name,
+Container,Tracking - Search Fields Data > ContainerNum,
+House Bill,Tracking - Search Fields Data > House Ref,
+Master Bill,Tracking - Search Fields Data > Master,

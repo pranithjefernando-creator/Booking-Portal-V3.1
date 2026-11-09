@@ -1,0 +1,298 @@
+Active,Code,Description,Mode,Container Type,IATA Class,TEU,Created By,Created Time (UTC),Last Edit,Last Edited Time (UTC),Height,Length,Width,Gross Weight,Tare Weight,Capacity (M3),ISO,System Defined,ISO Type,ISO Size,ISO Description
+Y,20FR,Twenty foot flatrack,SEA,FLT,,1.00,,,,,8.50,20.00,8.00,"30,480.00","2,950.00",27.90,Y,Y,22P1,"20' Long, 8'6 High, 8' Wide","Platform (Container) Fixed, Two complete and fixed ends"
+Y,20GP,Twenty foot general purpose,SEA,DRY,,1.00,,,,,8.50,20.00,8.00,"24,000.00","2,280.00",33.20,Y,Y,22G0,"20' Long, 8'6 High, 8' Wide","General Purpose Container Without Ventilation, Openings at one end or both ends"
+Y,20HC,Twenty foot high cube,SEA,DRY,,1.30,,,,,9.50,20.00,8.00,"32,000.00","2,550.00",38.50,Y,Y,25G0,"20' Long, 9'6 High, 8' Wide","General Purpose Container Without Ventilation, Openings at one end or both ends"
+Y,20NOR,Twenty foot non-operating reefer,SEA,DRY,,1.00,,,,,8.50,20.00,8.00,"24,000.00","2,950.00",27.40,Y,Y,22R0,"20' Long, 8'6 High, 8' Wide","Thermal Container Refrigerated, Mechanically refrigerated"
+Y,20OT,Twenty foot open top,SEA,TOP,,1.00,,,,,8.50,20.00,8.00,"24,000.00","2,440.00",32.00,Y,Y,22U0,"20' Long, 8'6 High, 8' Wide","Open-top Container, Opening(s) at one or both ends"
+Y,20PL,Twenty foot platform,SEA,DRY,,1.00,,,,,8.50,20.00,8.00,"23,993.00","2,749.00",0.00,Y,Y,22P0,"20' Long, 8'6 High, 8' Wide","Platform (Container) Platform-based container with incomplete superstructure, Platform (container)"
+Y,20RE,Twenty foot reefer,SEA,RFG,,1.00,,,,,8.50,20.00,8.00,"24,000.00","2,950.00",27.40,Y,Y,22R0,"20' Long, 8'6 High, 8' Wide","Thermal Container Refrigerated, Mechanically refrigerated"
+Y,40FR,Forty foot flatrack,SEA,FLT,,2.00,,,,,8.50,40.00,8.00,"45,000.00","5,530.00",54.80,Y,Y,42P1,"40' Long, 8'6 High, 8' Wide","Platform (Container) Fixed, Two complete and fixed ends"
+Y,40GP,Forty foot general purpose,SEA,DRY,,2.00,,,,,8.50,40.00,8.00,"30,480.00","3,830.00",67.70,Y,Y,42G0,"40' Long, 8'6 High, 8' Wide","General Purpose Container Without Ventilation, Openings at one end or both ends"
+Y,40HC,Forty foot high cube,SEA,DRY,,2.30,,,,,9.50,40.00,8.00,"30,480.00","3,980.00",76.30,Y,Y,45G0,"40' Long, 9'6 High, 8' Wide","General Purpose Container Without Ventilation, Openings at one end or both ends"
+Y,40NOR,Forty foot non-operating reefer,SEA,DRY,,2.00,,,,,8.50,40.00,8.00,"27,650.00","4,350.00",55.50,Y,Y,42R0,"40' Long, 8'6 High, 8' Wide","Thermal Container Refrigerated, Mechanically refrigerated"
+Y,40OT,Forty foot open top,SEA,TOP,,2.00,,,,,8.50,40.00,8.00,"36,000.00","4,430.00",66.70,Y,Y,42U0,"40' Long, 8'6 High, 8' Wide","Open-top Container, Opening(s) at one or both ends"
+Y,40PL,Forty foot platform,SEA,DRY,,2.00,,,,,8.50,40.00,8.00,"50,000.00","6,160.00",0.00,Y,Y,42P0,"40' Long, 8'6 High, 8' Wide","Platform (Container) Platform-based container with incomplete superstructure, Platform (container)"
+Y,40RE,Forty foot reefer,SEA,RFG,,2.00,,,,,8.50,40.00,8.00,"27,650.00","4,350.00",55.50,Y,Y,42R0,"40' Long, 8'6 High, 8' Wide","Thermal Container Refrigerated, Mechanically refrigerated"
+Y,40REHC,Forty foot high cube reefer,SEA,RFG,,2.30,,,SMS,25-Oct-23 05:46,9.50,40.00,8.00,"30,480.00","4,420.00",64.80,Y,Y,45R0,"40' Long, 9'6 High, 8' Wide","Thermal Container Refrigerated, Mechanically refrigerated"
+Y,45HC,Forty Five foot high cube,SEA,DRY,,2.50,,,,,9.50,45.00,8.00,"30,480.00","4,800.00",86.00,Y,Y,L5G0,"45' Long, 9'6 High, 8' Wide","General Purpose Container Without Ventilation, Openings at one end or both ends"
+Y,AMA-2Q,AMA 2Q,AIR,DRY,2Q,0.00,,,,,8.00,10.42,8.00,"6,804.00",260.00,17.16,N,N,,,
+Y,AMU-2BG,AMU 2BG,AIR,DRY,2BG,0.00,,,,,5.33,10.42,8.00,"6,033.00",200.00,13.70,N,N,,,
+Y,BELLY,BELLY DUMP TRAILER 40,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,CABL,CABLE SCRAPPER TRAILER,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,CARH,CAR HAULER 53,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,CARH1,CAR HAULER 48,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,CARH2,CAR HAULER 48,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,CARH3,CAR HAULER 24,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,CARH4,CAR HAULER 20,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,CHIP,CHIP TRAILER,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,CURT,CURTAIN SIDER,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,DROP,DROP DECK OR ROLLOFF 48X102,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,DROP1,DROP DECK OR ROLLOFF 42x102,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,DROP2,DROPDECK OR ROLLOFF 45x102,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,DROP3,DROPDECK OR ROLLOFF 53x102,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,DUMP,DUMP TRAILER,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,DUMP1,DUMP TRAILER,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,DUMP2,DUMP TRAILER 42x96,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,DUMP3,DUMP TRAILER 42,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,FLAT,FLATBED 42x96,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,FLAT1,FLATBED 42x102,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,FLAT3,FLATBED 45x96,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,FLAT4,FLATBED 48x96,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,FLAT5,FLATBED 48x102,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,FLAT6,FLATBED 53,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,GRA1,GRAIN HAULER 22,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,GRAI,GRAIN HAULER 42,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,GRAI2,GRAIN HAULER 26,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,GRAI3,GRAIN HAULER 30,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,GRAI4,GRAIN HAULER 34,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,GRAI5,GRAIN HAULER 36,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,GRAI6,GRAIN HAULER 38,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,GRAI7,GRAIN HAULER 40,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,KNUC,KNUCKLEBOOM LOADER,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,LD-1,LD1 AKC AVE,AIR,DRY,5,0.00,,,,,5.33,7.67,5.03,"1,588.00",85.00,4.80,N,N,,,
+Y,LD-11-ALP,LD11 ALP,AIR,DRY,6,0.00,,,,,5.33,10.42,5.03,"3,176.00",185.00,6.80,N,N,,,
+Y,LD-11-PLA,LD11 PLA,AIR,DRY,6,0.00,,,,,5.33,10.42,5.03,"3,176.00",73.00,7.00,N,N,,,
+Y,LD-2,LD2 APA APE,AIR,DRY,8D,0.00,,,,,5.33,3.92,5.03,"1,225.00",60.00,3.40,N,N,,,
+Y,LD-26,LD26 AAF,AIR,DRY,5,0.00,,,,,5.00,13.33,7.33,"6,033.00",286.00,12.00,N,N,,,
+Y,LD-29,LD29 AAU,AIR,DRY,5,0.00,,,,,7.33,15.50,5.17,"4,626.00",265.00,13.73,N,N,,,
+Y,LD-3,LD3 PA,AIR,DRY,5,0.00,,,,,5.33,5.13,5.03,"1,588.00",70.00,4.53,N,N,,,
+Y,LD-6,LD6 ALF ATA,AIR,DRY,6,0.00,,,,,5.33,10.42,5.03,"3,175.00",180.00,6.94,N,N,,,
+Y,LD-7,LD7 AAK ATA,AIR,DRY,5,0.00,,,,,5.33,10.42,7.33,"6,033.00",200.00,9.91,N,N,,,
+Y,LD-8,LD8 AQ ATA,AIR,DRY,6B,0.00,,,,,5.33,8.00,5.03,"2,449.00",120.00,6.94,N,N,,,
+Y,LD-9,LD9 AAP ATA,AIR,DRY,5,0.00,,,,,5.33,10.42,7.33,"6,033.00",200.00,9.91,N,N,,,
+Y,LIVE,LIVESTOCK TRAILER 48X96,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,LIVE1,LIVESTOCK TRAILER 48X102,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,LIVE2,LIVESTOCK TRAILER 53X102,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,LIVE3,LIVESTOCK TRAILER,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,LOG1,LOGGING 40,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,LOG2,LOGGING 48,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,LOG3,LOGGING 28,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,LOGG,LOGGING TRAILER,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,LOWB,LOWBOY 50X102,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,LOWB1,LOWBOY48X102,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,OPEN,OPEN TOP 28,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,OPEN1,OPEN TOP 46,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,OPEN2,OPEN TOP 48,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,P1P-PAP,P1P PAP PAG,AIR,DRY,5,0.00,,,,,5.33,10.42,7.33,"6,033.00",120.00,11.90,N,N,,,
+Y,PA-5,PA 5,AIR,DRY,5,0.00,,,,,5.33,10.42,7.33,"4,626.00",120.00,9.91,N,N,,,
+Y,PG-1S,PG 1/1S,AIR,DRY,1S,0.00,,,,,8.00,19.88,8.00,"13,608.00",400.00,33.25,N,N,,,
+Y,PL-6,PL 6,AIR,DRY,6,0.00,,,,,5.33,10.42,5.03,"3,175.00",90.00,6.94,N,N,,,
+Y,PM-2H,PM 2H,AIR,DRY,2H,0.00,,,,,8.00,10.42,8.00,"6,804.00",130.00,21.16,N,N,,,
+Y,PM-2Q,PM 2/2Q,AIR,DRY,2Q,0.00,,,,,8.00,19.88,8.00,"6,804.00",130.00,17.16,N,N,,,
+Y,PM-2WA,PM 2WA,AIR,DRY,2WA,0.00,,,,,5.33,10.42,8.00,"5,035.00",130.00,15.80,N,N,,,
+Y,R1FT,41-foot Flat Top,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,R1TL,41-foot Tautliner,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,R5FT,45-foot Flat Top,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,R5TL,45-foot Tautliner,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,R8FT,48-foot Flat Top,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,R8TL,48-foot Tautliner,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,RATR,A Trailer,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,RBDF,B-Double Flat Top,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,RBDT,B-Double Tautliner,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,RDPN,45-foot Pan Dry,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,REFR,REFRIGERATED VAN 48X102,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,REFR1,REFRIGERATED VAN 53X102,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,RFPN,45-foot Pan Freezer,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,RLDD,45-foot Tautliner Drop Deck,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,RLJM,45-foot Tautliner Jumbo,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,RLMZ,45-foot Tautliner Mezzanine Floor,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,RPUP,Pup Trailer,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,RPUP1,ROAD PUP 28X102,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,RRPN,45-foot Pan Refrigerator,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,RRTN,Road Train Trailer and Dog,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,RSDL,Sideloader,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,RTAU,Tautliner,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,RTCV,45-foot Flat Top Convertible,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,RTIP,Tipper,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,SIDE,SIDE DUMP TRAILER 36,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,STEEL,STEEL DUMP TRAILER 19,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,STEEL1,STEEL DUMP TRAILER 40,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,STEP,STEP DECK TRAILER 48X102,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,STEP1,STEP DECK TRAILER 46X102,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,STEP2,STEP DECK TRAILER 53X102,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,VAN1,CLOSED VAN 48x102,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,VAN2,CLOSED VAN 48,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,VAN3,CLOSED VAN 45,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,VAN4,CLOSED VAN 28x96,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,VAN5,CLOSED VAN 28x102,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,VANT,CLOSED VAN 53,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,WALK,WALKING FLOOR TRAILER 48,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,WALK1,WALKING FLOOR TRAILER 45,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,WALK2,WALKING FLOOR TRAILER 42,ROA,,,0.00,,,,,0.00,0.00,0.00,0.00,0.00,0.00,N,Y,,,
+Y,XAWA,XAW 747,AIR,DRY,5,0.00,,,,,5.33,10.42,7.33,"5,000.00",170.00,14.00,N,N,,,
+Y,AAA,Certified Aircraft Container,AIR,ACN,2A,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,8.00,10.42,7.33,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,AAD,Certified Aircraft Container,AIR,ACN,2C,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,9.83,10.42,7.33,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,AAF,Certified Aircraft Container,AIR,ACN,5WA,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,10.42,7.33,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,AAJ,Certified Aircraft Container,AIR,ACN,2,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,8.00,10.42,7.33,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,AAK,Certified Aircraft Container,AIR,ACN,5,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,10.42,7.33,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,AAM,Certified Aircraft Container,AIR,ACN, 2A,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,7.50,10.42,7.33,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,AAP,Certified Aircraft Container,AIR,ACN,5A,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,10.42,7.33,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,AAU,Certified Aircraft Container,AIR,ACN,5W,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,10.42,7.33,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,AAV,Certified Aircraft Container,AIR,ACN,2A,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,8.00,10.42,7.33,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,AAY,Certified Aircraft Container,AIR,ACN,3,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,7.17,10.42,7.33,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,AAZ,Certified Aircraft Container,AIR,ACN,3,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,7.17,10.42,7.33,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,ABB,Certified Aircraft Container,AIR,ACN,2B,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,6.00,9.00,7.33,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,AFP,Certified Aircraft Container,AIR,ACN,2R,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,8.00,9.81,8.00,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,AGA,Certified Aircraft Container,AIR,ACN,1,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,8.00,19.88,8.00,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,AGB,Certified Aircraft Container,AIR,ACN,1,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,8.00,19.88,8.00,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,AKC,Certified Aircraft Container,AIR,ACN,8B,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,5.09,5.03,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,AKE,Certified Aircraft Container,AIR,ACN,8,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,5.09,5.03,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,AKG,Certified Aircraft Container,AIR,ACN,8G,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,3.75,5.09,5.03,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,AKH,Certified Aircraft Container,AIR,ACN,8A,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,3.75,5.09,5.03,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,AKN,Certified Aircraft Container,AIR,ACN,8C,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,5.09,5.03,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,AKP,Certified Aircraft Container,AIR,ACN,8C,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,5.09,5.03,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,ALF,Certified Aircraft Container,AIR,ACN,6W,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,10.42,5.03,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,ALK,Certified Aircraft Container,AIR,ACN,6W,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,10.42,5.03,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,ALN,Certified Aircraft Container,AIR,ACN,6W,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,10.42,5.03,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,ALP,Certified Aircraft Container,AIR,ACN,6,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,10.42,5.03,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,ALU,Certified Aircraft Container,AIR,ACN,6W,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,10.42,5.03,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,AMA,Certified Aircraft Container,AIR,ACN,2,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,8.00,10.42,8.00,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,AMD,Certified Aircraft Container,AIR,ACN,2H,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,9.83,10.42,8.00,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,AMF,Certified Aircraft Container,AIR,ACN,2W,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,10.42,8.00,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,AMJ,Certified Aircraft Container,AIR,ACN,2Q,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,8.00,10.42,8.00,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,AML,Certified Aircraft Container,AIR,ACN,2H,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,9.67,10.42,8.00,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,AMP,Certified Aircraft Container,AIR,ACN,2BG,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,10.42,8.00,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,AMU,Certified Aircraft Container,AIR,ACN,2WA,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,10.42,8.00,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,AMV,Certified Aircraft Container,AIR,ACN,2Q,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,8.00,10.42,8.00,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,AMX,Certified Aircraft Container,AIR,ACN,2H,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,9.83,10.42,8.00,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,APE,Certified Aircraft Container,AIR,ACN,8D,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,5.03,3.92,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,APN,Certified Aircraft Container,AIR,ACN,8D,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,5.03,3.92,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,APP,Certified Aircraft Container,AIR,ACN,8D,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,5.03,3.92,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,AQF,Certified Aircraft Container,AIR,ACN,6A,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,8.00,5.03,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,AQN,Certified Aircraft Container,AIR,ACN,6A,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,8.00,5.03,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,AQP,Certified Aircraft Container,AIR,ACN,7A,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,8.00,5.03,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,ARA,Certified Aircraft Container,AIR,ACN,1P,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,8.00,16.33,8.00,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,BKH,Certified Aircraft Container,AIR,ACN,8A,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,3.75,5.13,5.03,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,DAF,Non-certified Aircraft Container,AIR,ACN,5WA,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,10.42,7.33,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,DAK,Non-certified Aircraft Container,AIR,ACN,5,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,10.42,7.33,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,DAP,Non-certified Aircraft Container,AIR,ACN,5A,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,10.42,7.33,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,DAU,Non-certified Aircraft Container,AIR,ACN,5W,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,10.42,7.33,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,DKC,Non-certified Aircraft Container,AIR,ACN,8B,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,5.09,5.03,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,DKE,Non-certified Aircraft Container,AIR,ACN,8,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,5.09,5.03,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,DKG,Non-certified Aircraft Container,AIR,ACN,8G,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,3.75,5.09,5.03,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,DKH,Non-certified Aircraft Container,AIR,ACN,8A,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,3.75,5.09,5.03,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,DKN,Non-certified Aircraft Container,AIR,ACN,8,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,5.09,5.03,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,DKP,Non-certified Aircraft Container,AIR,ACN,8C,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,5.09,5.03,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,DLF,Non-certified Aircraft Container,AIR,ACN,6W,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,10.42,5.03,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,DLN,Non-certified Aircraft Container,AIR,ACN,6,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,10.42,5.03,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,DLP,Non-certified Aircraft Container,AIR,ACN,6A,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,10.42,5.03,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,DLU,Non-certified Aircraft Container,AIR,ACN,6,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,10.42,5.03,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,DMF,Non-certified Aircraft Container,AIR,ACN,2W,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,10.42,8.00,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,DMP,Non-certified Aircraft Container,AIR,ACN,2BG,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,10.42,8.00,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,DMU,Non-certified Aircraft Container,AIR,ACN,2WA,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,10.42,8.00,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,DPE,Non-certified Aircraft Container,AIR,ACN,8D,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,5.03,3.92,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,DPN,Non-certified Aircraft Container,AIR,ACN,8D,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,5.03,3.92,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,DPP,Non-certified Aircraft Container,AIR,ACN,8D,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,5.03,3.92,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,DQF,Non-certified Aircraft Container,AIR,ACN,6A,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,8.00,5.03,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,DQN,Non-certified Aircraft Container,AIR,ACN,6A,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,8.00,5.03,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,DQP,Non-certified Aircraft Container,AIR,ACN,6A,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,8.00,5.03,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,HMA,Certified Horse Stall,AIR,HST,2,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,8.00,10.42,8.00,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,HMJ,Certified Horse Stall,AIR,HST,2Q,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,8.00,10.42,8.00,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,LAK,Certified Multi-Contour Aircraft Container,AIR,ACN,5,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,10.42,7.33,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,LAY,Certified Multi-Contour Aircraft Container,AIR,ACN,3,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,7.17,10.42,7.33,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,LAZ,Certified Multi-Contour Aircraft Container,AIR,ACN,3,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,7.17,10.42,7.33,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,MAF,Thermal Non-Certified Aircraft Container,AIR,TAC,5WA,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,10.42,7.33,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,MAK,Thermal Non-Certified Aircraft Container,AIR,TAC,5,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,10.42,7.33,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,MAP,Thermal Non-Certified Aircraft Container,AIR,TAC,5A,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,10.42,7.33,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,MAU,Thermal Non-Certified Aircraft Container,AIR,TAC,5W,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,10.42,7.33,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,MKC,Thermal Non-Certified Aircraft Container,AIR,TAC,8B,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,5.09,5.03,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,MKE,Thermal Non-Certified Aircraft Container,AIR,TAC,8,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,5.09,5.03,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,MKG,Thermal Non-Certified Aircraft Container,AIR,TAC,8G,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,3.75,5.09,5.03,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,MKH,Thermal Non-Certified Aircraft Container,AIR,TAC,8A,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,3.75,5.09,5.03,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,MKN,Thermal Non-Certified Aircraft Container,AIR,TAC,8,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,5.09,5.03,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,MKP,Thermal Non-Certified Aircraft Container,AIR,TAC,8C,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,5.09,5.03,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,MLF,Thermal Non-Certified Aircraft Container,AIR,TAC,6W,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,10.42,5.03,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,MLK,Thermal Non-Certified Aircraft Container,AIR,TAC,6,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,10.42,5.03,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,MLN,Thermal Non-Certified Aircraft Container,AIR,TAC,6,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,10.42,5.03,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,MLP,Thermal Non-Certified Aircraft Container,AIR,TAC,6,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,10.42,5.03,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,MLU,Thermal Non-Certified Aircraft Container,AIR,TAC,6,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,10.42,5.03,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,MMF,Thermal Non-Certified Aircraft Container,AIR,TAC,2W,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,10.42,8.00,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,MMP,Thermal Non-Certified Aircraft Container,AIR,TAC,2BG,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,10.42,8.00,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,MMU,Thermal Non-Certified Aircraft Container,AIR,TAC,2WA,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,10.42,8.00,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,MPE,Thermal Non-Certified Aircraft Container,AIR,TAC,8D,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,5.03,3.92,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,MPN,Thermal Non-Certified Aircraft Container,AIR,TAC,8D,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,5.03,3.92,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,MPP,Thermal Non-Certified Aircraft Container,AIR,TAC,8D,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,5.03,3.92,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,MQF,Thermal Non-Certified Aircraft Container,AIR,TAC,6A,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,8.00,5.03,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,MQN,Thermal Non-Certified Aircraft Container,AIR,TAC,6A,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,8.00,5.03,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,MQP,Thermal Non-Certified Aircraft Container,AIR,TAC,7A,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,8.00,5.03,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,QKC,Certified Fire Resistant Container,AIR,FRC,8B,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,5.09,5.03,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,QKE,Certified Fire Resistant Container,AIR,FRC,8,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,5.09,5.03,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,QKG,Certified Fire Resistant Container,AIR,FRC,8G,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,3.75,5.09,5.03,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,QKH,Certified Fire Resistant Container,AIR,FRC,8A,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,3.75,5.09,5.03,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,QKN,Certified Fire Resistant Container,AIR,FRC,8,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,5.09,5.03,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,QKP,Certified Fire Resistant Container,AIR,FRC,8C,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,5.09,5.03,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,QPE,Certified Fire Resistant Container,AIR,FRC,8D,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,5.03,3.92,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,QPN,Certified Fire Resistant Container,AIR,FRC,8D,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,5.03,3.92,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,QPP,Certified Fire Resistant Container,AIR,FRC,8D,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,5.03,3.92,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,RAA,Thermal Certified Aircraft Container,AIR,TAC,2A,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,8.00,10.42,7.33,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,RAD,Thermal Certified Aircraft Container,AIR,TAC,2C,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,9.83,10.42,7.33,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,RAF,Thermal Certified Aircraft Container,AIR,TAC,5WA,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,10.42,7.33,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,RAJ,Thermal Certified Aircraft Container,AIR,TAC,2A,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,8.00,10.42,7.33,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,RAK,Thermal Certified Aircraft Container,AIR,TAC,5,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,10.42,7.33,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,RAP,Thermal Certified Aircraft Container,AIR,TAC,5A,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,10.42,7.33,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,RAU,Thermal Certified Aircraft Container,AIR,TAC,5W,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,10.42,7.33,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,RGA,Thermal Certified Aircraft Container,AIR,TAC,1,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,8.00,19.88,8.00,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,RGB,Thermal Certified Aircraft Container,AIR,TAC,1,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,8.00,19.88,8.00,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,RKC,Thermal Certified Aircraft Container,AIR,TAC,8B,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,5.09,5.03,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,RKE,Thermal Certified Aircraft Container,AIR,TAC,8,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,5.09,5.03,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,RKG,Thermal Certified Aircraft Container,AIR,TAC,8G,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,3.75,5.09,5.03,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,RKH,Thermal Certified Aircraft Container,AIR,TAC,8A,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,3.75,5.09,5.03,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,RKN,Thermal Certified Aircraft Container,AIR,TAC,8C,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,5.09,5.03,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,RKP,Thermal Certified Aircraft Container,AIR,TAC,8C,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,5.09,5.03,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,RLF,Thermal Certified Aircraft Container,AIR,TAC,6W,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,10.42,5.03,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,RLK,Thermal Certified Aircraft Container,AIR,TAC,6,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,10.42,5.03,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,RLN,Thermal Certified Aircraft Container,AIR,TAC,6,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,10.42,5.03,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,RLP,Thermal Certified Aircraft Container,AIR,TAC,6,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,10.42,5.03,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,RLU,Thermal Certified Aircraft Container,AIR,TAC,6,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,10.42,5.03,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,RMA,Thermal Certified Aircraft Container,AIR,TAC,2,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,8.00,10.42,8.00,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,RMF,Thermal Certified Aircraft Container,AIR,TAC,2W,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,10.42,8.00,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,RMP,Thermal Certified Aircraft Container,AIR,TAC,2BG,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,10.42,8.00,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,RMU,Thermal Certified Aircraft Container,AIR,TAC,2WA,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,10.42,8.00,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,RPE,Thermal Certified Aircraft Container,AIR,TAC,8D,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,5.03,3.92,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,RPN,Thermal Certified Aircraft Container,AIR,TAC,8D,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,5.03,3.92,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,RPP,Thermal Certified Aircraft Container,AIR,TAC,8D,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,5.03,3.92,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,RQF,Thermal Certified Aircraft Container,AIR,TAC,6A,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,8.00,5.03,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,RQN,Thermal Certified Aircraft Container,AIR,TAC,6A,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,8.00,5.03,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,RQP,Thermal Certified Aircraft Container,AIR,TAC,7A,0.00,~BP,13-Nov-22 07:11,~BP,13-Nov-22 07:11,5.34,8.00,5.03,0.00,0.00,0.00,Y,Y,10A0,"10' Long, 8' High, 8' Wide","Air/Surface Container, General Purpose"
+Y,CURTTRA,Curtainside Trailer,ROA,,,0.00,BNS,15-Apr-24 15:14,~BP,20-Feb-26 11:50,0.00,0.00,0.00,0.00,0.00,0.00,Y,N,,,
+Y,REFBOX,Box Trailer – Refrigerated,ROA,,,0.00,BNS,15-Apr-24 15:13,~BP,20-Feb-26 11:50,0.00,0.00,0.00,0.00,0.00,0.00,Y,N,,,
+Y,STBOX,Box Trailer - Standard,ROA,,,0.00,BNS,15-Apr-24 15:13,~BP,20-Feb-26 11:50,0.00,0.00,0.00,0.00,0.00,0.00,Y,N,,,
+Y,20GP GOH,20 FEET GARMENT ON HANGAR,SEA,OTH,,1.00,DA4,27-Jan-18 05:14,~BP,20-Feb-26 11:50,8.00,20.00,8.00,0.00,0.00,0.00,N,N,20GP,,
+Y,40 HC GOH,40 GARMENT ON HANGAR,SEA,OTH,,2.30,DA4,27-Jan-18 05:16,~BP,20-Feb-26 11:50,0.00,0.00,0.00,0.00,0.00,0.00,Y,N,,,
+Y,40GP GOH,40 GARMENT ON HANGAR,SEA,OTH,,2.00,DA4,27-Jan-18 05:15,~BP,20-Feb-26 11:50,0.00,0.00,0.00,0.00,0.00,0.00,Y,N,,,
+Y,45HC GOH,GARMENT ON HANGAR,SEA,OTH,,0.00,DA4,27-Jan-18 05:16,~BP,20-Feb-26 11:50,0.00,0.00,0.00,0.00,0.00,0.00,Y,N,,,
+Y,RTRK,Truck,SEA,OTH,,0.00,DA4,15-Oct-18 17:58,~BP,20-Feb-26 11:50,0.00,0.00,0.00,0.00,0.00,0.00,N,N,,,
+Y,ULD A2,A2 ULD,AIR,,1,0.00,DA4,21-May-18 07:27,DA4,21-May-18 07:27,2.10,4.10,3.15,0.00,0.00,0.00,N,N,,,
+Y,ULD H2,uld h2,AIR,,1,0.00,DA4,21-May-18 07:35,DA4,21-May-18 07:35,2.10,4.10,3.15,0.00,0.00,0.00,N,N,,,
+Y,ULD H3,ULD H3,AIR,,1,0.00,DA4,21-May-18 07:36,DA4,21-May-18 07:36,2.10,4.10,3.15,0.00,0.00,0.00,N,N,,,
+Y,ULD J4,ULD J4,AIR,,1,0.00,DA4,21-May-18 07:39,DA4,21-May-18 07:39,3.87,4.10,3.15,0.00,0.00,0.00,N,N,,,
+Y,ULD Q6,ULD Q6,AIR,,1,0.00,DA4,21-May-18 07:38,DA4,21-May-18 07:38,3.15,4.10,3.15,0.00,0.00,0.00,N,N,,,
+Y,ULD Q7,ULD Q7,AIR,,1,0.00,DA4,21-May-18 07:40,DA4,21-May-18 07:40,3.87,4.10,3.15,0.00,0.00,0.00,N,N,,,
+Y,ULD XJ,ULD XJ,AIR,,1,0.00,DA4,21-May-18 07:37,DA4,21-May-18 07:37,3.15,4.10,3.15,0.00,0.00,0.00,N,N,,,
+Y,ULDW2,ULD W2,AIR,,1,0.00,DA4,21-May-18 07:29,DA4,21-May-18 07:29,2.10,4.10,3.15,0.00,0.00,0.00,N,N,,,
+Y,40HC (SUB),Forty foot high cube Substitue,SEA,DRY,,2.00,SMS,07-Aug-20 07:13,~BP,20-Feb-26 11:50,9.50,40.00,8.00,0.00,0.00,0.00,Y,N,45G0,"40' Long, 9'6 High, 8' Wide","General Purpose Container Without Ventilation, Openings at one end or both ends"
+Y,45GP,Forty Five foot General Purpose,SEA,DRY,,0.00,SMS,20-Sep-24 11:34,~BP,20-Feb-26 11:50,9.60,45.00,8.00,0.00,0.00,0.00,Y,N,L5G0,"45' Long, 9'6 High, 8' Wide","General Purpose Container Without Ventilation, Openings at one end or both ends"
+Y,CHAS,CHASSIS,ROA,,,0.00,SMS,17-Sep-25 06:02,~BP,20-Feb-26 11:50,0.00,0.00,0.00,0.00,0.00,0.00,Y,N,,,
+Y,LSE,Loose Load,AIR,DRY,1S,0.00,SMS,22-Nov-23 04:27,~BP,20-Feb-26 11:50,0.00,0.00,0.00,0.00,0.00,0.00,N,N,,,
+Y,OPEN3,IND-Truck 20Ft Open Top,SEA,DRY,,1.00,SMS,09-Jun-20 07:42,~BP,20-Feb-26 11:50,0.00,0.00,0.00,0.00,0.00,0.00,Y,N,,,
+Y,TANKER20FT,20Ft Tanker,SEA,RFG,,1.00,SMS,04-Jul-20 08:51,~BP,20-Feb-26 11:50,0.00,0.00,0.00,0.00,0.00,0.00,Y,N,,,
+Y,TRUCK 20',Indian Closed Body Truck 20' Feet,ROA,DRY,,1.00,SMS,09-Jun-20 06:52,~BP,20-Feb-26 11:50,0.00,0.00,0.00,0.00,0.00,0.00,Y,N,,,
+Y,TRUCK 22',Indian Closed Body Truck 22' Feet,ROA,DRY,,1.00,SMS,09-Jun-20 06:54,~BP,20-Feb-26 11:50,0.00,0.00,0.00,0.00,0.00,0.00,Y,N,,,
+Y,TRUCK 24',Indian Closed Body Truck 24' Feet,SEA,DRY,,1.50,SMS,09-Jun-20 07:03,~BP,20-Feb-26 11:50,0.00,0.00,0.00,0.00,0.00,0.00,Y,N,,,
+Y,TRUCK 32',Indian Closed Body Truck 32' Feet S,SEA,DRY,,2.00,SMS,09-Jun-20 07:04,~BP,20-Feb-26 11:50,0.00,0.00,0.00,0.00,0.00,0.00,Y,N,,,
+Y,AKE,Lower Deck Container,AIR,DRY,8,0.00,SPM,30-Jun-22 03:34,SPM,30-Jun-22 03:34,5.35,5.12,5.02,0.00,0.00,0.00,N,N,,,
+Y,AKH,Lower Deck Container,AIR,DRY,8A,0.00,SPM,30-Jun-22 03:52,SPM,30-Jun-22 03:52,3.81,5.12,5.02,0.00,0.00,0.00,N,N,,,
+Y,ALF,Lower Deck Container,AIR,DRY,6,0.00,SPM,30-Jun-22 03:49,SPM,30-Jun-22 03:49,5.35,10.43,5.02,0.00,0.00,0.00,N,N,,,
+Y,AMP,Lower Deck Container,AIR,DRY,5,0.00,SPM,30-Jun-22 04:01,SPM,30-Jun-22 04:01,5.18,10.37,7.28,0.00,0.00,0.00,N,N,,,
+Y,P1P/PAG,Lower Deck Pallet,AIR,DRY,5,0.00,SPM,30-Jun-22 04:20,SPM,30-Jun-22 04:20,5.35,10.43,8.01,0.00,0.00,0.00,N,N,,,
+Y,PGA/20FEET,Main Deck Pallet,AIR,DRY,1,0.00,SPM,30-Jun-22 04:21,SPM,30-Jun-22 04:21,9.84,19.88,8.01,0.00,0.00,0.00,N,N,,,
+Y,PLA,Lower Deck Pallet,AIR,DRY,6,0.00,SPM,30-Jun-22 03:55,SPM,30-Jun-22 03:55,5.35,10.43,5.02,0.00,0.00,0.00,N,N,,,
+Y,PMC - Q6,Main Deck Pallet,AIR,DRY,2H,0.00,SPM,30-Jun-22 03:58,SPM,30-Jun-22 03:58,8.01,10.43,8.01,0.00,0.00,0.00,N,N,,,
+Y,PMC- LDP,Lower Deck Pallet,AIR,DRY,2BG,0.00,SPM,30-Jun-22 03:43,SPM,30-Jun-22 03:43,5.35,10.43,8.01,0.00,0.00,0.00,N,N,,,
+Y,PMC- Q7,Main Deck Pallet,AIR,DRY,2H,0.00,SPM,30-Jun-22 03:41,SPM,30-Jun-22 03:45,9.84,10.43,8.01,0.00,0.00,0.00,N,N,,,
+Y,40HH (SUB),40HC (SUB) GOH,SEA,OTH,,0.00,SZF,13-Mar-24 06:24,~BP,20-Feb-26 11:50,0.00,0.00,0.00,0.00,0.00,0.00,Y,N,,,
+Y,42T6,TANK CONTAINER,SEA,TNK,,2.00,SZF,21-Sep-23 02:08,~BP,20-Feb-26 11:50,0.00,0.00,0.00,0.00,0.00,0.00,N,N,42T6,,
+Y,40HCOT,40 FOOT HIGH CUBE OPEN TOP,SEA,TOP,,2.00,TP2,10-Nov-23 11:45,~BP,20-Feb-26 11:50,9.50,40.00,8.00,0.00,0.00,0.00,Y,N,45U1,"40' Long, 9'6 High, 8' Wide","Open-top Container, Opening(s) at one or both ends, plus removable top member(s) in end frame(s)"
+Y,45P3,45 Flat Rack,SEA,FLT,,2.00,TP2,10-Nov-23 11:41,~BP,20-Feb-26 11:50,9.50,40.00,8.00,0.00,0.00,0.00,Y,N,45P3,"40' Long, 9'6 High, 8' Wide","Platform (Container) Folding (collapsible), Folding complete end structure"
+Y,40HR,Forty foot high cube reefer,SEA,RFG,,2.00,YG,25-Jan-23 10:14,~BP,20-Feb-26 11:50,9.50,40.00,8.00,0.00,0.00,0.00,Y,N,45R1,"40' Long, 9'6 High, 8' Wide","Thermal Container Refrigerated and Heated, Mechanically refrigerated and heated"
+Y,53SG,Fifty Threefoot high cube,SEA,DRY,,2.00,ZM,21-Mar-24 07:15,~BP,20-Feb-26 11:50,9.50,40.00,8.00,0.00,0.00,0.00,Y,N,45G0,"40' Long, 9'6 High, 8' Wide","General Purpose Container Without Ventilation, Openings at one end or both ends"

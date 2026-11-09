@@ -1,0 +1,37 @@
+UI Field,Excel Mapping,Remarks
+mapped shipment > reference,"Tracking - Command Center Data > House Ref
+Tracking - Command Center Data > ContainerNum
+Tracking - Command Center Data > Order Ref","Multiple mappings, can track using house, container and PO"
+mapped shipment > mode,Tracking - Command Center Data > Trans,
+mapped shipment > status,Not Available Now,To be updated late
+mapped shipment > lat,Not Available Now,To be updated late
+mapped shipment > lng,Not Available Now,To be updated late
+mapped shipment > route,"Tracking - Command Center Data > Leg 1 - Load
+Tracking - Command Center Data > Leg 1 - Discharge
+Tracking - Command Center Data > Leg 2 - Load
+Tracking - Command Center Data > Leg 2 - Discharge
+Tracking - Command Center Data > Leg 3 - Load
+Tracking - Command Center Data > Leg 3 - Discharge
+Tracking - Command Center Data > Leg 4 - Load
+Tracking - Command Center Data > Leg 4 - Discharge",Multiple columns to look at and display the route
+mapped shipment > vessel,"Tracking - Command Center Data > Vessel
+Tracking - Command Center Data > Flight/Voyage","multiple columns to look at.
+Vessel will show the ocean vessel name
+flight/voyage will show the flight number for air and voyage numberfor ocean"
+mapped shipment > eta,Tracking - Command Center Data > Destination ETA,
+mapped shipment > originaleta,Tracking - Command Center Data > Last Leg STA,
+mapped shipment > delay,calculate,Calcualte using eta and originaleta
+mapped shipment > risk,Tracking - Command Center Data > ,
+mapped shipment > cause,Tracking - Command Center Data > ,
+mapped shipment > milestone,Not Available Now,To be updated late
+mapped shipment > milestoneeta,Not Available Now,To be updated late
+KPI > activeshipments,calculate,Calculate the number of shipment records
+KPI > onschedule,calculate,Calculate the number of shipment records
+KPI > atrisk,calculate,
+KPI > critical,calculate,
+KPI > arrivingnext7days,calculate,
+KPI > customshold,calculate,
+route lines > id,Not Available Now,To be updated late
+route lines > mode,Tracking - Command Center Data > Trans,
+route lines > path >lat ,calculate,Calucalte using mapped shipment > route ports
+route lines > path >lng,calculate,Calucalte using mapped shipment > route ports

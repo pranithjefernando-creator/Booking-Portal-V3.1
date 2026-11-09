@@ -1,0 +1,26 @@
+{
+	"name": "sbms",
+	"version": "13.4.0",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"dev": "vite",
+		"prebuild": "npm run check:locations",
+		"build": "vite build",
+		"preview": "vite preview",
+		"test": "node --test test/*.test.js",
+		"check:locations": "node scripts/check-locations.mjs",
+		"update:locations": "node scripts/update-locations.mjs"
+	},
+	"dependencies": {
+		"leaflet": "^1.9.4",
+		"react": "^18.3.1",
+		"react-dom": "^18.3.1",
+		"react-leaflet": "^4.2.1",
+		"react-router-dom": "^6.30.1"
+	},
+	"devDependencies": {
+		"@vitejs/plugin-react": "^4.7.0",
+		"vite": "^6.4.1"
+	}
+}

@@ -1,0 +1,42 @@
+UI Field,Excel Mapping,Remarks
+ID,Tracking -Shipment Details Data > Shipment ID,
+Status,Not Available Now,To be updated late
+Mode,Tracking -Shipment Details Data > Trans,
+Load,Tracking -Shipment Details Data > Mode,
+Route,"Tracking -Shipment Details Data > Leg 1 - Load
+Tracking -Shipment Details Data > Leg 1 - Discharge
+Tracking -Shipment Details Data > Leg 2 - Load
+Tracking -Shipment Details Data > Leg 2 - Discharge
+Tracking -Shipment Details Data > Leg 3 - Load
+Tracking -Shipment Details Data > Leg 3 - Discharge
+Tracking -Shipment Details Data > Leg 4 - Load
+Tracking -Shipment Details Data > Leg 4 - Discharge",Multiple columns to look at and display the route
+eta,Tracking -Shipment Details Data > Destination ETA,
+etatime,Tracking -Shipment Details Data > Destination ETA,
+confidence,Not Available Now,To be updated late
+originaleta,Not Available Now,To be updated late
+carriereta,Tracking -Shipment Details Data > ETA Last Discharge,
+aieta,Not Available Now,To be updated late
+customer,Tracking -Shipment Details Data > ,Split this column into 2 fields as Consignee and Shipper
+Consignee,Tracking - Search Fields Data > Consignee Name,
+Shipper,Tracking - Search Fields Data > Consignor Name,
+booking,Tracking -Shipment Details Data > Master,
+hbl,Tracking -Shipment Details Data > House Ref,
+containers,"Tracking -Shipment Details Data > ContainerNum
+Tracking -Shipment Details Data > other
+Tracking -Shipment Details Data > 20F
+Tracking -Shipment Details Data > 20R
+Tracking -Shipment Details Data > 20H
+Tracking -Shipment Details Data > 40F
+Tracking -Shipment Details Data > 40R
+Tracking -Shipment Details Data > 40H
+Tracking -Shipment Details Data > 45F","multiple columns to look at the container type, if there is a count in the container type column then the same type is applicable for that shipment"
+cargo,Tracking -Shipment Details Data > Goods Description,
+weight,Tracking -Shipment Details Data > Weight,
+weightunit,Tracking -Shipment Details Data > WEIGHT UQ,
+volume,Tracking -Shipment Details Data > Volume,
+volumeunit,Tracking -Shipment Details Data > Volume UQ,
+Milestone > label,Not Available Now,To be updated late
+Milestone > date,Not Available Now,To be updated late
+Milestone > location,Not Available Now,To be updated late
+Milestone > state,Not Available Now,To be updated late

@@ -1,0 +1,12 @@
+import { buildBookingXml } from "./src/lib/cwPayload.js";
+import { sendBookingToCw } from "./src/lib/cwClient.js";
+import { cwPublicConfig } from "./src/lib/config.js";
+const booking = { mode: "Air", incotermCode: "EXW", freightTerms: "STD", originCode: "USMIA", destCode: "BSNAS", goodsDescription: "TELECOM EQUIPMENT", shipper: { companyName: "INTCOMEX", address1: "10310 NW 121ST WAY", postCode: "33178", city: "MEDLEY", state: "FL", country: "US" }, consignee: { companyName: "BAHAMAS TELECOMMUNICATIONS COMPANY", address1: "JOHN KENNEDY DR", postCode: "00000", city: "NASSAU", state: "BAHAMAS", country: "BS" }, cargoLines: [{ packages: 1, packageTypeCode: "CRT", grossWeight: 231, weightUnit: "KGS", volume: 1, volumeUnit: "M3" }] };
+console.log("CW config:", JSON.stringify(cwPublicConfig(), null, 2));
+const xml = buildBookingXml(booking);
+console.log("\n=== OUTBOUND XML ===\n" + xml);
+const res = await sendBookingToCw(xml, booking);
+console.log("\n=== CW RESPONSE ===");
+console.log("mode:", res.mode, "| ok:", res.ok, "| httpStatus:", res.status, "| cwBookingNumber:", res.cwBookingNumber || "(none)");
+if (res.error) console.log("error:", res.error);
+console.log("\nbody:\n" + (res.response || "(empty)"));

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" role="img" aria-labelledby="title desc">
+  <title id="title">Freight container</title>
+  <desc id="desc">Illustration of a white intermodal freight container with blue doors.</desc>
+  <defs>
+    <linearGradient id="floor" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#eef8fc"/><stop offset="1" stop-color="#c9e3ef"/></linearGradient>
+    <linearGradient id="side" x1="0" x2="1"><stop stop-color="#ffffff"/><stop offset="1" stop-color="#d8e8ef"/></linearGradient>
+    <linearGradient id="door" x1="0" x2="1"><stop stop-color="#9cb6c3"/><stop offset="1" stop-color="#617d8c"/></linearGradient>
+  </defs>
+  <ellipse cx="380" cy="306" rx="286" ry="24" fill="#a9c9d7" opacity=".35"/>
+  <path d="M120 264 486 236 653 277 281 315Z" fill="url(#floor)"/>
+  <path d="M124 104 482 72 482 237 124 266Z" fill="url(#side)" stroke="#9db7c4" stroke-width="3"/>
+  <path d="m482 72 166 44v161l-166-40Z" fill="url(#door)" stroke="#617d8c" stroke-width="3"/>
+  <path d="M150 99v163M176 97v161M202 94v159M228 92v157M254 89v155M280 87v153M306 85v151M332 83v149M358 81v147M384 79v145M410 77v143M436 75v141" stroke="#bfd1d8" stroke-width="4"/>
+  <path d="M500 79v157M520 84v160M540 90v164M560 95v169M580 101v174M600 106v179M620 112v183" stroke="#c0d0d6" stroke-width="3"/>
+  <path d="M493 83 640 122M493 119 640 158M493 155 640 194M493 191 640 230" stroke="#6b8794" stroke-width="2" opacity=".8"/>
+  <path d="M478 71v169M647 116v163" stroke="#385d6c" stroke-width="6"/>
+  <g fill="#f09a32"><rect x="507" y="113" width="11" height="20" rx="2"/><rect x="507" y="151" width="11" height="20" rx="2"/><rect x="507" y="190" width="11" height="20" rx="2"/></g>
+  <text x="250" y="177" fill="#2b5570" font-family="Arial, sans-serif" font-size="54" font-weight="700" transform="skewY(-5)">EFL</text>
+  <path d="m115 267 15 12M478 239l11 13M648 278l11 10M280 316l-1 13M650 278v14" stroke="#365967" stroke-width="7" stroke-linecap="round"/>
+</svg>
