@@ -7,6 +7,7 @@ import { cwPublicConfig } from "../lib/config.js";
 import { RULE_FIELDS } from "../validation.js";
 import { uuid } from "../db.js";
 import { allOrders } from "../lib/orderDb.js";
+import { bookingDatabase } from "../lib/bookingDatabase.js";
 import { trackingOrganizations, trackingPartyOptions, trackingRecords } from "../lib/trackingAccess.js";
 import { FIELD_CATALOG } from "../fieldVisibilityCatalog.js";
 const router = Router();
@@ -53,7 +54,27 @@ function normalizeRuleConfiguration(input, existing = {}) {
   }
   return { configuration: { id: existing.id || uuid(), name, enabled: input.enabled !== false, rules, updatedAt: new Date().toISOString(), createdAt: existing.createdAt || new Date().toISOString() } };
 }
-router.get("/dashboard/summary", requirePermission("dashboard.view"), (req, res) => { const all = db.bookings.filter((b) => canSeeBooking(req.user, b)); const count = (s) => all.filter((b) => b.status === s).length; const kpis = { total: all.length, draft: count("DRAFT"), validated: count("VALIDATED"), completed: count("COMPLETED"), cfsReceived: all.filter((b) => b.cfsReceived).length, orders: allOrders().length }; const months = []; const now = new Date(); for (let i = 5; i >= 0; i--) { const d = new Date(now.getFullYear(), now.getMonth() - i, 1); months.push({ label: d.toLocaleString("en", { month: "short" }), created: 0, completed: 0 }); } const seedTrend = [[55, 40], [62, 48], [58, 44], [74, 60], [80, 66], [68, 52]]; months.forEach((m, i) => { m.created = seedTrend[i][0]; m.completed = seedTrend[i][1]; }); const recent = [...all].sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)).slice(0, 6).map((b) => ({ id: b.id, reference: b.reference, shipper: b.shipper?.companyName || "—", mode: b.mode || "—", route: `${b.originCode || "—"}→${b.destCode || "—"}`, status: b.status })); res.json({ kpis, months, recent }); });
+router.get("/dashboard/summary", requirePermission("dashboard.view"), async (req, res) => {
+  const all = (await bookingDatabase().list()).filter((b) => canSeeBooking(req.user, b));
+  const count = (s) => all.filter((b) => b.status === s).length;
+  const kpis = { total: all.length, draft: count("DRAFT"), validated: count("VALIDATED"), completed: count("COMPLETED"), cfsReceived: all.filter((b) => b.cfsReceived).length, orders: allOrders().length };
+  const now = new Date();
+  const months = Array.from({ length: 6 }, (_, i) => {
+    const date = new Date(now.getFullYear(), now.getMonth() - 5 + i, 1);
+    return { label: date.toLocaleString("en", { month: "short" }), created: 0, completed: 0, year: date.getFullYear(), month: date.getMonth() };
+  });
+  for (const booking of all) {
+    for (const [field, key] of [["createdAt", "created"], ["completedAt", "completed"]]) {
+      if (!booking[field]) continue;
+      const date = new Date(booking[field]);
+      if (Number.isNaN(date.getTime())) continue;
+      const month = months.find((item) => item.year === date.getFullYear() && item.month === date.getMonth());
+      if (month) month[key]++;
+    }
+  }
+  const recent = [...all].sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)).slice(0, 6).map((b) => ({ id: b.id, reference: b.reference, shipper: b.shipper?.companyName || "—", mode: b.mode || "—", route: `${b.originCode || "—"}→${b.destCode || "—"}`, status: b.status }));
+  res.json({ kpis, months: months.map(({ year, month, ...item }) => item), recent });
+});
 router.get("/cw/config", requirePermission("dashboard.view"), (req, res) => res.json(cwPublicConfig()));
 router.get("/audit-logs", requirePermission("audit.view"), (req, res) => res.json({ total: db.audit.length, items: db.audit.slice(0, 200) }));
 router.get("/rbac/matrix", requirePermission("dashboard.view"), (req, res) => res.json({ roles: Object.keys(db.roles), matrix: permissionMatrix() }));
@@ -136,15 +157,22 @@ router.get("/reference/:type", (req, res) => { const list = reference[req.params
 router.post("/auth/change-password", changePassword);
 router.post("/users/:id/reset-password", requirePermission("admin.users"), (req, res) => { const u = db.users.find((x) => x.id === req.params.id); if (!u) return res.status(404).json({ error: "User not found" }); res.json({ initialPassword: issueInitialPassword(u.id) }); });
 router.get("/me", (req, res) => { const def = db.roles[req.user.role] || { permissions: [], modules: [] }; const fieldVisibility = Object.fromEntries(Object.entries(visibilityAssignmentKeys).map(([module, key]) => [module, [...(db.fieldVisibilityProfiles.find((profile) => profile.id === req.user[key] && profile.module === module)?.hiddenFields || [])]])); res.json({ fieldVisibility, user: req.user, realRole: req.realRole, mustChangePassword: mustChangePassword(req.user.id), permissions: def.permissions, modules: effectiveModules(req.user), availableRoles: Object.keys(db.roles), availableUsers: db.users.map((u) => ({ id: u.id, name: u.name, email: u.email, role: u.role })) }); });
-router.get("/notifications/summary", (req, res) => {
+router.get("/notifications/summary", async (req, res) => {
   const user = req.user; const def = db.roles[user.role] || { permissions: [] }; const can = (p) => def.permissions.includes(p);
-  const visible = db.bookings.filter((b) => canSeeBooking(user, b));
+  if (!can("booking.approve") && !can("booking.edit") && !can("booking.validate")) return res.json({ total: 0, items: [] });
+  const snapshot = (await bookingDatabase().listNotificationSnapshot()).filter(({ booking }) => canSeeBooking(user, booking));
+  const visible = snapshot.map(({ booking }) => booking);
+  const approvals = snapshot.flatMap((row) => row.approvals);
   const items = [];
-  if (can("booking.approve")) { const count = db.approvals.filter((a) => a.status === "PENDING").length; if (count) items.push({ key: "approvals", label: "Awaiting your approval", count, link: "/approvals" }); }
-  const rejectedIds = new Set(db.approvals.filter((a) => a.status === "REJECTED").map((a) => a.bookingId));
-  if (can("booking.edit")) { const count = visible.filter((b) => b.status === "DRAFT" && rejectedIds.has(b.id) && b.createdBy === user.name).length; if (count) items.push({ key: "rejected", label: "Rejected — needs rework", count, link: "/bookings?status=DRAFT" }); }
+  if (can("booking.approve")) { const count = approvals.filter((a) => a.status === "PENDING").length; if (count) items.push({ key: "approvals", label: "Awaiting your approval", count, link: "/approvals" }); }
+  const latest = new Map();
+  for (const approval of approvals) {
+    const previous = latest.get(approval.bookingId);
+    if (!previous || String(approval.requestedAt || "") > String(previous.requestedAt || "")) latest.set(approval.bookingId, approval);
+  }
+  const rejectedIds = new Set([...latest.values()].filter((a) => a.status === "REJECTED").map((a) => a.bookingId));
+  if (can("booking.edit")) { const count = visible.filter((b) => b.status === "DRAFT" && rejectedIds.has(b.id) && (b.createdByEmail ? String(b.createdByEmail).toLowerCase() === String(user.email || "").toLowerCase() : b.createdBy === user.name)).length; if (count) items.push({ key: "rejected", label: "Rejected — needs rework", count, link: "/bookings?status=DRAFT" }); }
   if (can("booking.validate")) { const count = visible.filter((b) => b.status === "DRAFT" && !rejectedIds.has(b.id)).length; if (count) items.push({ key: "validation", label: "Ready for validation", count, link: "/bookings?status=DRAFT" }); }
   res.json({ total: items.reduce((s, i) => s + i.count, 0), items });
 });
 export default router;
-

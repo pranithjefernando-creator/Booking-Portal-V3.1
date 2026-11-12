@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { api } from "../api.js";
 import { Field, Select, Banner, PageBanner, Spinner, StatusBadge, DocViewer, Modal } from "../components/ui.jsx";
 import { cargoValuesFromOrder } from "../lib/bookingOrderMapping.js";
+import { cargoLinkedOrderIds, planCargoOrderLinks } from "../lib/bookingOrderLinks.js";
 import { useAuth } from "../context/AuthContext.jsx";
 import { FIELD_CATALOG, isFieldVisible } from "../lib/formVisibility.js";
 const eCargo = () => ({ packages: "", packageTypeCode: "", grossWeight: "", weightUnit: "KGS", volume: "", volumeUnit: "M3", hsCode: "", poNumbers: "", orderId: "" });
@@ -20,18 +21,18 @@ export default function CreateBooking() {
   const visible = (key) => isFieldVisible("booking", me?.fieldVisibility?.booking, key);
   const hasSection = (section) => FIELD_CATALOG.booking.some((field) => field.section === section && visible(field.key));
   const [ref, setRef] = useState({}); const [orgs, setOrgs] = useState({ shipperOrgs: [], consigneeOrgs: [], directory: {} });
-  const [errors, setErrors] = useState([]); const [banner, setBanner] = useState(null); const [saving, setSaving] = useState(false);
+  const [errors, setErrors] = useState([]); const [banner, setBanner] = useState(null); const [saving, setSaving] = useState(false); const [createdId, setCreatedId] = useState("");
   const [b, setB] = useState(isEdit ? null : blank()); const [loaded, setLoaded] = useState({ status: "DRAFT", cwConverted: false, cw1ShipmentRef: "" });
   const [docs, setDocs] = useState([]); const [pendingDocs, setPendingDocs] = useState([]); const [docType, setDocType] = useState("CIV"); const [viewDoc, setViewDoc] = useState(null); const [docBusy, setDocBusy] = useState(false);
   const [templates, setTemplates] = useState([]); const [tplModal, setTplModal] = useState(false); const [tplName, setTplName] = useState("");
-  const [orders, setOrders] = useState([]); const [ordersEnabled, setOrdersEnabled] = useState(false); const [initialOrderIds, setInitialOrderIds] = useState(() => new Set());
+  const [orders, setOrders] = useState([]); const [ordersEnabled, setOrdersEnabled] = useState(false); const [initialOrderIds, setInitialOrderIds] = useState(() => new Set()); const [cargoOrderIds, setCargoOrderIds] = useState(() => new Set());
   const [orderSearchByLine, setOrderSearchByLine] = useState({});
   const fileRef = React.useRef();
   const loadTemplates = () => api.get("/bookings/templates").then((d) => setTemplates(d.templates || [])).catch(() => {});
-  const loadOrders = () => api.get("/orders").then((d) => { setOrders(d.items || []); setOrdersEnabled(true); }).catch(() => setOrdersEnabled(false));
+  const loadOrders = () => api.get("/orders").then((d) => { setOrders(d.items || []); setOrdersEnabled(true); }).catch((e) => { setOrdersEnabled(false); if (e.status !== 403) setBanner({ tone: "error", msg: `Could not load orders: ${e.message}` }); });
   useEffect(() => {
     api.get("/reference").then(setRef).catch(() => {}); api.get("/bookings/meta/orgs").then(setOrgs).catch(() => {}); loadTemplates(); loadOrders();
-    if (isEdit) api.get(`/bookings/${id}`).then((data) => { setLoaded({ status: data.status, cwConverted: !!data.cwConverted, cw1ShipmentRef: data.cw1ShipmentRef || "" }); if (data.editable === false) setBanner({ tone: "error", msg: data.editBlockedReason || "This booking can no longer be edited." }); setDocs(data.documents || []); setInitialOrderIds(new Set(data.orderIds || [])); setB({ ...blank(), ...data, shipper: { ...eParty(), ...(data.shipper || {}) }, consignee: { ...eParty(), ...(data.consignee || {}) }, dg: { ...blank().dg, ...(data.dg || {}) }, pickup: { ...blank().pickup, ...(data.pickup || {}) }, dates: { ...blank().dates, ...(data.dates || {}) }, cargoLines: (data.cargoLines && data.cargoLines.length ? data.cargoLines.map((l) => ({ ...eCargo(), ...l })) : [eCargo()]) }); }).catch((e) => setBanner({ tone: "error", msg: e.message }));
+    if (isEdit) api.get(`/bookings/${id}`).then((data) => { setLoaded({ status: data.status, cwConverted: !!data.cwConverted, cw1ShipmentRef: data.cw1ShipmentRef || "" }); if (data.editable === false) setBanner({ tone: "error", msg: data.editBlockedReason || "This booking can no longer be edited." }); setDocs(data.documents || []); const linkedIds = new Set(data.orderIds || []); setInitialOrderIds(linkedIds); setCargoOrderIds(cargoLinkedOrderIds(data.cargoLines || [], linkedIds)); setB({ ...blank(), ...data, shipper: { ...eParty(), ...(data.shipper || {}) }, consignee: { ...eParty(), ...(data.consignee || {}) }, dg: { ...blank().dg, ...(data.dg || {}) }, pickup: { ...blank().pickup, ...(data.pickup || {}) }, dates: { ...blank().dates, ...(data.dates || {}) }, cargoLines: (data.cargoLines && data.cargoLines.length ? data.cargoLines.map((l) => ({ ...eCargo(), ...l })) : [eCargo()]) }); }).catch((e) => setBanner({ tone: "error", msg: e.message }));
   }, [id]); // eslint-disable-line
   useEffect(() => { if (b && b.mode === "Ocean FCL" && (b.containers || []).length === 0) setB((prev) => ({ ...prev, containers: [eCont()] })); }, [b && b.mode]); // eslint-disable-line
 
@@ -66,17 +67,18 @@ export default function CreateBooking() {
     }
   }
   async function reconcileOrderLinks(saved) {
-    const selected = new Set(b.cargoLines.map((l) => l.orderId).filter(Boolean));
-    const toLink = [...selected].filter((x) => !initialOrderIds.has(x));
-    const toUnlink = [...initialOrderIds].filter((x) => !selected.has(x));
-    if (!toLink.length && !toUnlink.length) return;
+    const { selected, toLink, toUnlink } = planCargoOrderLinks(b.cargoLines, initialOrderIds, cargoOrderIds);
+    if (!toLink.length && !toUnlink.length) { setCargoOrderIds(new Set([...selected].filter((oid) => initialOrderIds.has(oid)))); return; }
     const linked = new Set(initialOrderIds);
+    const managed = new Set(cargoOrderIds);
     for (const oid of toLink) {
       try {
         await api.post(`/orders/${oid}/link-booking`, { bookingId: saved.id });
         linked.add(oid);
+        managed.add(oid);
       } catch (e) {
         setInitialOrderIds(linked);
+        setCargoOrderIds(managed);
         loadOrders();
         const orderNo = orders.find((order) => order.id === oid)?.orderNo || oid;
         return `order ${orderNo} could not be linked: ${e.message}`;
@@ -84,16 +86,19 @@ export default function CreateBooking() {
     }
     for (const oid of toUnlink) {
       try {
-        await api.post(`/orders/${oid}/unlink-booking`);
+        await api.post(`/orders/${oid}/unlink-booking`, { bookingId: saved.id });
         linked.delete(oid);
+        managed.delete(oid);
       } catch (e) {
         setInitialOrderIds(linked);
+        setCargoOrderIds(managed);
         loadOrders();
         const orderNo = orders.find((order) => order.id === oid)?.orderNo || oid;
         return `order ${orderNo} could not be unlinked: ${e.message}`;
       }
     }
     setInitialOrderIds(linked);
+    setCargoOrderIds(new Set([...selected].filter((oid) => linked.has(oid))));
     loadOrders();
   }
   function pickOrg(which, code) { const d = (orgs.directory && orgs.directory[code]) || null; const party = d ? { code: d.code, companyName: d.name, address1: d.address1, address2: d.address2, city: d.city, state: d.state, postCode: d.postCode, country: d.country } : eParty(); setB((prev) => ({ ...prev, [`${which}Code`]: code, [which]: party })); }
@@ -104,7 +109,7 @@ export default function CreateBooking() {
   async function onPickFile(e) { const files = Array.from(e.target.files || []); if (!files.length) return; if (isEdit) { setDocBusy(true); try { for (const file of files) { const r = await api.uploadDoc(`/bookings/${id}/documents`, file, docType); setDocs((d) => [...d, r.document]); } setBanner({ tone: "success", msg: `${files.length} document(s) uploaded.` }); } catch (err) { setBanner({ tone: "error", msg: err.message }); } finally { setDocBusy(false); } } else setPendingDocs((p) => [...p, ...files.map((file) => ({ file, type: docType, name: file.name, size: file.size }))]); if (fileRef.current) fileRef.current.value = ""; }
   async function deleteDoc(docId) { try { const r = await api.del(`/bookings/${id}/documents/${docId}`); setDocs(r.documents || []); } catch (e) { setBanner({ tone: "error", msg: e.message }); } }
   const removePending = (i) => setPendingDocs((p) => p.filter((_, x) => x !== i));
-  async function persist() { setSaving(true); setBanner(null); setErrors([]); try { const saved = isEdit ? await api.put(`/bookings/${id}`, norm(b)) : await api.post("/bookings", norm(b)); if (!isEdit && pendingDocs.length) { for (const pd of pendingDocs) { try { await api.uploadDoc(`/bookings/${saved.id}/documents`, pd.file, pd.type); } catch (_) {} } setPendingDocs([]); } return saved; } catch (e) { if (e.status === 400 && e.data?.errors) { setErrors(e.data.errors); setBanner({ tone: "error", msg: `${e.data.errors.length} issue(s) to fix.` }); } else setBanner({ tone: "error", msg: e.message }); return null; } finally { setSaving(false); } }
+  async function persist() { setSaving(true); setBanner(null); setErrors([]); try { const existingId = id || createdId; const saved = existingId ? await api.put(`/bookings/${existingId}`, norm(b)) : await api.post("/bookings", norm(b)); if (!existingId) setCreatedId(saved.id); if (!isEdit && pendingDocs.length) { for (const pd of pendingDocs) { try { await api.uploadDoc(`/bookings/${saved.id}/documents`, pd.file, pd.type); } catch (_) {} } setPendingDocs([]); } return saved; } catch (e) { if (e.status === 400 && e.data?.errors) { setErrors(e.data.errors); setBanner({ tone: "error", msg: `${e.data.errors.length} issue(s) to fix.` }); } else setBanner({ tone: "error", msg: e.message }); return null; } finally { setSaving(false); } }
   async function saveDraft() { const s = await persist(); if (!s) return; const linkError = await reconcileOrderLinks(s); if (linkError) { setBanner({ tone: "error", msg: `${s.reference} saved, but ${linkError}` }); return; } setBanner({ tone: "success", msg: `${s.reference} saved. Redirecting…` }); setTimeout(() => navigate(`/bookings/${s.id}`), 800); }
   async function saveValidate() { const saved = await persist(); if (!saved) return; const linkError = await reconcileOrderLinks(saved); if (linkError) { setBanner({ tone: "error", msg: `${saved.reference} saved, but ${linkError}` }); return; } try { const v = await api.post(`/bookings/${saved.id}/validate`); setBanner({ tone: "success", msg: `${saved.reference} validated.${v.requiresApproval ? " Requires approval." : ""} Redirecting…` }); setTimeout(() => navigate(`/bookings/${saved.id}`), 900); } catch (ve) { if (ve.status === 400 && ve.data?.errors) { setErrors(ve.data.errors); setBanner({ tone: "error", msg: `Saved as ${saved.reference}. ${ve.data.errors.length} issue(s) before validate.` }); } else setBanner({ tone: "error", msg: ve.message }); } }
   async function saveAndSendUpdate() { const saved = await persist(); if (!saved) return; const linkError = await reconcileOrderLinks(saved); if (linkError) { setBanner({ tone: "error", msg: `${saved.reference} saved, but ${linkError}` }); return; } try { const r = await api.post(`/bookings/${id}/resend-cw`); const cw = r.cw || {}; if (cw.ok) { setBanner({ tone: "success", msg: `Update sent to CargoWise (booking ${r.cw1ShipmentRef}). Redirecting…` }); setTimeout(() => navigate(`/bookings/${id}`), 1000); } else setBanner({ tone: "error", msg: `Saved, but CW update failed: ${cw.error || "HTTP " + cw.status}.` }); } catch (e) { setBanner({ tone: "error", msg: `Saved, but CW update failed: ${e.message}` }); } }

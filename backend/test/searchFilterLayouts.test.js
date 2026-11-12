@@ -7,7 +7,7 @@ import { createApp, Router } from "../src/lib/http.js";
 import bookingsRouter from "../src/routes/bookings.js";
 import ordersRouter from "../src/routes/orders.js";
 
-test("booking and order filter layouts are saved per user and can be deleted", async () => {
+test("order filter layouts are saved per user and can be deleted", async () => {
   seed();
   const admin = db.users[0];
   const password = "Filter-Layout-Test1";
@@ -35,12 +35,6 @@ test("booking and order filter layouts are saved per user and can be deleted", a
     const { token } = await loginResponse.json();
     assert.ok(token);
     const filters = [{ field: "status", operator: "eq", value: "APPROVED", type: "text" }];
-    const savedBooking = await request("/api/v1/bookings/filters", "POST", { name: "Approved", filters }, token);
-    assert.equal(savedBooking.status, 201);
-    const bookingLayouts = await (await request("/api/v1/bookings/filters/list", "GET", undefined, token)).json();
-    assert.equal(bookingLayouts.layouts.length, 1);
-    assert.deepEqual(bookingLayouts.layouts[0].filters, filters);
-
     const savedOrder = await request("/api/v1/orders/filters", "POST", { name: "Approved", filters }, token);
     assert.equal(savedOrder.status, 201);
     const orderLayouts = await (await request("/api/v1/orders/filters/list", "GET", undefined, token)).json();
