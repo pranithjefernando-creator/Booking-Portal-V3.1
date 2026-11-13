@@ -45,7 +45,7 @@ function Cfg({ userId, catalog, ruleConfigurations, visibilityProfiles, onClose,
   </div></Modal>);
 }
 
-function RuleManager({ configurations, fields, onChange, setBanner }) {
+export function RuleManager({ configurations, fields, onChange, setBanner }) {
   const [draft, setDraft] = useState(null);
   const emptyCondition = () => ({ field: fields[0]?.value || "mode", operator: "eq", value: "" });
   const newRule = () => ({ name: "", match: "all", enabled: true, conditions: [emptyCondition()] });

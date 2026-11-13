@@ -30,8 +30,8 @@ export function trackingOrganizations(records) {
   return [...options.values()].sort((left, right) => left.label.localeCompare(right.label));
 }
 
-export function canSeeTracking(user, record) {
-  if (!user || !effectiveModules(user).includes("tracking")) return false;
+export function canSeeTracking(user, record, role) {
+  if (!user || !effectiveModules(user, role).includes("tracking")) return false;
   const allowed = new Set(Array.isArray(user.trackingOrgs) ? user.trackingOrgs : []);
   const organizations = [record["CW Org Code"], record["Consignor Code"], record["Consignee Code"], ...["Consignor Name", "Consignee Name"].filter((field) => record[field]).map((field) => partyKey(record[field]))].filter(Boolean);
   return organizations.some((organization) => allowed.has(organization));
@@ -52,7 +52,8 @@ export function historicalPorts(records) {
 }
 
 export function requireTracking(req, res, next) {
-  if (!effectiveModules(req.user).includes("tracking")) return res.status(403).json({ error: "Tracking module access is not enabled" });
+  if (!req.accessRole) throw new Error("Missing authenticated access role");
+  if (!effectiveModules(req.user, req.accessRole).includes("tracking")) return res.status(403).json({ error: "Tracking module access is not enabled" });
   next();
 }
 
@@ -78,8 +79,9 @@ export async function trackingRecords() {
   return records;
 }
 
-export async function trackingHistory(user) {
-  return (await trackingRecords()).filter((record) => canSeeTracking(user, record));
+export async function trackingHistory(user, role) {
+  if (!role) throw new Error("Missing authenticated access role");
+  return (await trackingRecords()).filter((record) => canSeeTracking(user, record, role));
 }
 
 export async function shipmentEvents(records) {

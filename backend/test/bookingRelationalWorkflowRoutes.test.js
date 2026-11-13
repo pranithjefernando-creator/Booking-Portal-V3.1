@@ -1,12 +1,15 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
+import { readFile } from "node:fs/promises";
 import { once } from "node:events";
 import net from "node:net";
 import { setTimeout as sleep } from "node:timers/promises";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
 import { createBookingPool } from "../src/lib/bookingStore.js";
+import { initializeDefaultApproval } from "../src/lib/accessConfigurationStore.js";
+import { userAccessTransaction } from "../src/lib/userAccessStore.js";
 
 test("existing workflow routes operate on the staged v4 store across server restarts", { skip: process.env.BOOKING_DB_TEST !== "1" }, async () => {
   const probe = net.createServer();
@@ -17,12 +20,16 @@ test("existing workflow routes operate on the staged v4 store across server rest
   const orderNo = `TEST-V4-${randomUUID()}`;
   const orderId = `sql-${Buffer.from(orderNo).toString("base64url")}`;
   const pool = createBookingPool();
+  const schema = `access_approval_${randomUUID().replaceAll("-", "")}`;
+  const unavailableSchema = `${schema}_unavailable`;
+  let schemaCreated = false;
+  let renamed = false;
   const ids = [];
   let batchId, child, errors = "";
   const base = `http://127.0.0.1:${port}`;
   async function start() {
     errors = "";
-    child = spawn(process.execPath, ["--experimental-loader", new URL("./fixtures/relationalWorkflowLoader.js", import.meta.url).href, fileURLToPath(new URL("./fixtures/relationalWorkflowServer.js", import.meta.url))], { stdio: ["ignore", "ignore", "pipe"], env: { ...process.env, PORT: String(port), TEST_ORDER_NO: orderNo } });
+    child = spawn(process.execPath, ["--experimental-loader", new URL("./fixtures/relationalWorkflowLoader.js", import.meta.url).href, fileURLToPath(new URL("./fixtures/relationalWorkflowServer.js", import.meta.url))], { stdio: ["ignore", "ignore", "pipe"], env: { ...process.env, PORT: String(port), TEST_ORDER_NO: orderNo, TEST_ACCESS_SCHEMA: schema } });
     child.stderr.on("data", (chunk) => { errors += chunk; });
     for (let attempt = 0; attempt < 100; attempt++) {
       if (child.exitCode !== null) throw new Error(`Test server exited: ${errors}`);
@@ -40,13 +47,25 @@ test("existing workflow routes operate on the staged v4 store across server rest
   }
   const json = (method, body = {}, other = false) => ({ method, headers: { "content-type": "application/json", ...(other ? { "x-test-other": "1" } : {}) }, body: JSON.stringify(body) });
   try {
+    await pool.query((await readFile(new URL("../sql/user-access-v1.sql", import.meta.url), "utf8")).replaceAll("portal_access_v1", schema));
+    schemaCreated = true;
+    const scoped = { async connect() { const client = await pool.connect(); return { query: (sql, params) => client.query(sql.replaceAll("portal_access_v1.", `${schema}.`), params), release: (error) => client.release(error) }; } };
+    await userAccessTransaction(scoped, initializeDefaultApproval);
     await start();
     const body = { shipperCode: "LANKAENG", consigneeCode: "ACME", mode: "Ocean FCL", incotermCode: "FOB", cargoReadyDate: "2027-01-01", goodsDescription: "Relational route test", cargoLines: [{ packages: 1, grossWeight: 12000, weightUnit: "KGS" }] };
     const created = await fetch(`${base}/bookings`, json("POST", body));
     assert.equal(created.status, 201);
     const booking = await created.json();
     ids.push(booking.id);
-    assert.equal((await fetch(`${base}/bookings/${booking.id}/validate`, json("POST"))).status, 200);
+    await pool.query(`ALTER SCHEMA ${schema} RENAME TO ${unavailableSchema}`);
+    renamed = true;
+    assert.equal((await fetch(`${base}/bookings/${booking.id}/validate`, json("POST"))).status, 500);
+    assert.equal((await (await fetch(`${base}/bookings/${booking.id}`)).json()).status, "DRAFT");
+    await pool.query(`ALTER SCHEMA ${unavailableSchema} RENAME TO ${schema}`);
+    renamed = false;
+    const validation = await fetch(`${base}/bookings/${booking.id}/validate`, json("POST"));
+    assert.equal(validation.status, 200);
+    assert.deepEqual((await validation.json()).requiresApproval, ["Ocean FCL gross weight > 10,000 KGS"]);
     const form = new FormData();
     form.append("type", "DOC");
     form.append("file", new Blob(["v4 document"]), "v4.txt");
@@ -95,6 +114,8 @@ test("existing workflow routes operate on the staged v4 store across server rest
       await pool.query("DELETE FROM booking_portal_v4.order_links WHERE order_id = $1", [orderId]);
       await pool.query("DELETE FROM booking_portal_v4.approvals WHERE booking_id = ANY($1::text[])", [ids]);
       await pool.query("DELETE FROM booking_portal_v4.bookings WHERE id = ANY($1::text[])", [ids]);
+      if (renamed) await pool.query(`ALTER SCHEMA ${unavailableSchema} RENAME TO ${schema}`);
+      if (schemaCreated) await pool.query(`DROP SCHEMA ${schema} CASCADE`);
     } finally { await pool.end(); }
   }
 });

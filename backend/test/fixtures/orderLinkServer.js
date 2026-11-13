@@ -1,3 +1,4 @@
+import { getRole } from "../../src/rbac.js";
 import { db, makeOrder, seed } from "../../src/db.js";
 import { createApp } from "../../src/lib/http.js";
 import bookingsRouter from "../../src/routes/bookings.js";
@@ -27,6 +28,7 @@ app.use((req, res, next) => {
     : req.header("x-test-scope") === "order-restricted"
       ? { ...db.users[3], bookingOrgs: ["TESTCO"], orderOrgs: ["OTHER"] }
       : db.users[0];
+  req.accessRole = getRole(req.user.role);
   next();
 });
 app.get("/ready", (req, res) => res.json({ ok: true }));

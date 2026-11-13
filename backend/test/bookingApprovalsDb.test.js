@@ -1,3 +1,4 @@
+import { getRole } from "../src/rbac.js";
 import assert from "node:assert/strict";
 import { once } from "node:events";
 import { randomUUID } from "node:crypto";
@@ -8,6 +9,7 @@ import { createBookingPool } from "../src/lib/bookingStore.js";
 import { createApp } from "../src/lib/http.js";
 import bookingsRouter from "../src/routes/bookings.js";
 import approvalsRouter from "../src/routes/approvals.js";
+import { evaluateApproval } from "../src/validation.js";
 
 test("approval submissions and decisions persist atomically and honor booking scope", { skip: process.env.BOOKING_DB_TEST !== "1" }, async () => {
   seed();
@@ -18,7 +20,7 @@ test("approval submissions and decisions persist atomically and honor booking sc
   let server;
   async function start() {
     const app = createApp();
-    app.use((req, res, next) => { req.user = req.header("x-test-other") ? restricted : admin; next(); });
+    app.use((req, res, next) => { req.user = req.header("x-test-other") ? restricted : admin; req.accessRole = getRole(req.user.role); req.evaluateBookingApproval = evaluateApproval; next(); });
     app.use("/bookings", bookingsRouter);
     app.use("/approvals", approvalsRouter);
     server = app.listen(0);

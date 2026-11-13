@@ -3,7 +3,7 @@ import path from "path"; import { fileURLToPath } from "url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const BASE = "http://localhost:4100/api/v1"; const TEST_PW = "Test-Only-Pass1"; const H = { "Content-Type": "application/json" };
 let pass = 0, fail = 0; const ok = (n, c) => { if (c) { pass++; console.log("  \u2713", n); } else { fail++; console.log("  \u2717", n); } };
-const server = spawn("node", ["server.js"], { cwd: path.join(__dirname, ".."), stdio: "ignore", env: { ...process.env, PORT: "4100", ORG_DB_PASSWORD: "", ORDER_DB_PASSWORD: "", CW_MODE: "mock", SEED_DEFAULT_PASSWORD: TEST_PW, AUTH_SECRET: "test-secret" } });
+const server = spawn("node", ["server.js"], { cwd: path.join(__dirname, ".."), stdio: "ignore", env: { ...process.env, PORT: "4100", ORG_DB_PASSWORD: "", ORDER_DB_PASSWORD: "", CW_MODE: "mock", SEED_DEFAULT_PASSWORD: TEST_PW, AUTH_SECRET: "smoke-test-secret-at-least-32-bytes" } });
 await sleep(900);
 try {
   let r = await fetch("http://localhost:4100/api/health").then((x) => x.json()); ok("health ok", r.status === "ok");

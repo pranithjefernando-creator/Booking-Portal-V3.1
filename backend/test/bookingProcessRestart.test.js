@@ -35,7 +35,7 @@ test("booking workflow survives actual backend process restarts", { skip: proces
   const base = `http://127.0.0.1:${port}`;
   async function start() {
     childErrors = "";
-    child = spawn(process.execPath, ["--experimental-loader", new URL("./fixtures/mockSqlLoader.js", import.meta.url).href, "server.js"], { cwd, stdio: ["ignore", "ignore", "pipe"], env: { ...process.env, PORT: String(port), SEED_DEFAULT_PASSWORD: password, AUTH_SECRET: "booking-test-only", TRACKING_DB_PASSWORD: "", ORDER_DB_PASSWORD: "test-only", TEST_ORDER_NO: orderNo, ORG_DB_PASSWORD: "", CW_MODE: "mock" } });
+    child = spawn(process.execPath, ["--experimental-loader", new URL("./fixtures/mockSqlLoader.js", import.meta.url).href, "server.js"], { cwd, stdio: ["ignore", "ignore", "pipe"], env: { ...process.env, PORT: String(port), SEED_DEFAULT_PASSWORD: password, AUTH_SECRET: "booking-test-only-secret-at-least-32-bytes", TRACKING_DB_PASSWORD: "", ORDER_DB_PASSWORD: "test-only", TEST_ORDER_NO: orderNo, ORG_DB_PASSWORD: "", CW_MODE: "mock" } });
     child.stderr.on("data", (chunk) => { childErrors += chunk; });
     for (let attempt = 0; attempt < 100; attempt++) {
       if (child.exitCode !== null) throw new Error(`Backend exited before becoming ready: ${childErrors}`);

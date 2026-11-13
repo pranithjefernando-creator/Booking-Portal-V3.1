@@ -27,7 +27,7 @@ test("active v4 complete workflow survives backend restarts and failed writes", 
     errors = "";
     child = spawn(process.execPath, ["--experimental-loader", new URL("./fixtures/mockSqlLoader.js", import.meta.url).href, "server.js"], {
       cwd, stdio: ["ignore", "ignore", "pipe"],
-      env: { ...process.env, NODE_ENV: "production", PORT: String(port), SEED_DEFAULT_PASSWORD: password, AUTH_SECRET: "booking-test-only", TRACKING_DB_PASSWORD: "", ORDER_DB_PASSWORD: "test-only", TEST_ORDER_NO: orderNo, ORG_DB_PASSWORD: "", CW_MODE: "mock" }
+      env: { ...process.env, NODE_ENV: "production", PORT: String(port), SEED_DEFAULT_PASSWORD: password, AUTH_SECRET: "booking-test-only-secret-at-least-32-bytes", TRACKING_DB_PASSWORD: "", ORDER_DB_PASSWORD: "test-only", TEST_ORDER_NO: orderNo, ORG_DB_PASSWORD: "", CW_MODE: "mock" }
     });
     child.stderr.on("data", (chunk) => { errors += chunk; });
     for (let attempt = 0; attempt < 200; attempt++) {

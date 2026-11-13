@@ -17,9 +17,9 @@ export default function Login() {
         <p className="ol-lead">Your single platform to plan, book, track and manage your shipments with EFL Global.</p>
         {error && <div className="ol-error" role="alert">{error}</div>}
         <div className={`ol-field ${touched && !email.trim() ? "bad" : ""}`}>
-          <label htmlFor="ol-email">Username</label>
-          <div className="ol-box">{ico(<><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 3.600-6 8-6s8 2 8 6" /></>)}<input id="ol-email" type="text" placeholder="Enter your username" autoComplete="username" autoFocus value={email} onChange={(e) => setEmail(e.target.value)} /></div>
-          {touched && !email.trim() && <span className="ol-hint">Enter your username</span>}
+          <label htmlFor="ol-email">Email</label>
+          <div className="ol-box">{ico(<><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 3.600-6 8-6s8 2 8 6" /></>)}<input id="ol-email" type="email" placeholder="Enter your email" autoComplete="username" autoFocus value={email} onChange={(e) => setEmail(e.target.value)} /></div>
+          {touched && !email.trim() && <span className="ol-hint">Enter your email</span>}
         </div>
         <div className={`ol-field ${touched && !password ? "bad" : ""}`}>
           <label htmlFor="ol-pass">Password</label>

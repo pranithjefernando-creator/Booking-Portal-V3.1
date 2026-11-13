@@ -1,8 +1,10 @@
+import { getRole } from "../../src/rbac.js";
 import { db, seed } from "../../src/db.js";
 import { createApp } from "../../src/lib/http.js";
 import bookingsRouter from "../../src/routes/bookings.js";
 import ordersRouter from "../../src/routes/orders.js";
 import miscRouter from "../../src/routes/misc.js";
+import { evaluateApproval } from "../../src/validation.js";
 
 seed();
 const user = { ...db.users[2], email: process.env.TEST_USER_EMAIL, bookingOrgs: [process.env.TEST_BOOKING_ORG] };
@@ -10,6 +12,8 @@ db.bookings.push({ id: "in-memory-decoy", cwOrgCode: process.env.TEST_BOOKING_OR
 const app = createApp();
 app.use((req, res, next) => {
   req.user = req.header("x-other") ? { ...user, email: process.env.TEST_OTHER_EMAIL } : user;
+  req.accessRole = getRole(req.user.role);
+  req.evaluateBookingApproval = evaluateApproval;
   next();
 });
 app.get("/ready", (req, res) => res.json({ ok: true }));

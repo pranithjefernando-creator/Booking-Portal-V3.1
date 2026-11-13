@@ -1,3 +1,4 @@
+import { getRole } from "../src/rbac.js";
 import assert from "node:assert/strict";
 import { once } from "node:events";
 import test from "node:test";
@@ -9,6 +10,7 @@ import bookingsRouter from "../src/routes/bookings.js";
 import approvalsRouter from "../src/routes/approvals.js";
 import importsRouter from "../src/routes/imports.js";
 import ordersRouter from "../src/routes/orders.js";
+import { evaluateApproval } from "../src/validation.js";
 
 test("booking records, edits, statuses and documents persist across server restarts", { skip: process.env.BOOKING_DB_TEST !== "1" }, async () => {
   seed();
@@ -18,7 +20,7 @@ test("booking records, edits, statuses and documents persist across server resta
   let id;
   async function start() {
     const app = createApp();
-    app.use((req, res, next) => { req.user = admin; next(); });
+    app.use((req, res, next) => { req.user = admin; req.accessRole = getRole(req.user.role); req.evaluateBookingApproval = evaluateApproval; next(); });
     app.use("/bookings", bookingsRouter);
     app.use("/approvals", approvalsRouter);
     app.use("/imports", importsRouter);

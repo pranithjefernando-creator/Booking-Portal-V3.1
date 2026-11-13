@@ -1,3 +1,4 @@
+import { getRole } from "../src/rbac.js";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { once } from "node:events";
@@ -7,6 +8,7 @@ import { closeBookingDatabase } from "../src/lib/bookingDatabase.js";
 import { createBookingPool } from "../src/lib/bookingStore.js";
 import { createRelationalBookingStore } from "../src/lib/bookingRelationalStore.js";
 import { createApp } from "../src/lib/http.js";
+import { evaluateApproval } from "../src/validation.js";
 import bookingsRouter from "../src/routes/bookings.js";
 import ordersRouter from "../src/routes/orders.js";
 import miscRouter from "../src/routes/misc.js";
@@ -22,7 +24,7 @@ test("shared views use scoped PostgreSQL bookings and approvals", { skip: proces
   let server;
   async function start() {
     const app = createApp();
-    app.use((req, res, next) => { req.user = req.header("x-other") ? sameName : user; next(); });
+    app.use((req, res, next) => { req.user = req.header("x-other") ? sameName : user; req.accessRole = getRole(req.user.role); req.evaluateBookingApproval = evaluateApproval; next(); });
     app.use("/bookings", bookingsRouter);
     app.use("/orders", ordersRouter);
     app.use("/", miscRouter);
@@ -115,7 +117,7 @@ test("shared booking views report database failures instead of returning empty r
   await closeBookingDatabase();
   Object.assign(process.env, { PGHOST: "127.0.0.1", PGPORT: "1", PGDATABASE: "test", PGUSER: "test", PGPASSWORD: "test" });
   const app = createApp();
-  app.use((req, res, next) => { req.user = db.users[0]; next(); });
+  app.use((req, res, next) => { req.user = db.users[0]; req.accessRole = getRole(req.user.role); next(); });
   app.use("/bookings", bookingsRouter);
   app.use("/orders", ordersRouter);
   app.use("/", miscRouter);

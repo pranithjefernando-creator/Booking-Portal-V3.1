@@ -15,7 +15,7 @@ Backend (http://localhost:4000):
 ```powershell
 cd backend
 $env:TRACKING_DB_PASSWORD = '<your database password>'
-node server.js
+node --env-file=.env server.js
 ```
 
 Frontend (http://localhost:5173):
@@ -29,6 +29,102 @@ npm run dev
 `NODE_USE_SYSTEM_CA` enables the Windows trusted certificate store on Node 24, which resolves npm's `UNABLE_TO_GET_ISSUER_CERT_LOCALLY` error when the required certificate is trusted by Windows. It does not disable TLS verification. If the error persists, obtain the required CA certificate from your IT team.
 
 Use separate lines for installation and startup: `>` redirects output in PowerShell, rather than chaining commands. If the backend reports `EADDRINUSE` on port 4000, check http://localhost:4000/api/health to see whether a process is running and http://localhost:4000/api/ready for booking PostgreSQL readiness. Stop the existing backend with Ctrl+C in its terminal before restarting it with changed environment settings.
+
+## User and access PostgreSQL schema
+
+`backend/sql/user-access-v1.sql` defines a separate `portal_access_v1` schema for users, roles, permissions, modules, role grants, user module overrides and ordered organization scopes. User IDs are application-supplied UUIDs; email addresses are trimmed and unique regardless of case. Ordered scopes preserve the current first-organization default. `modules_configured` distinguishes inheriting role modules from explicitly selecting no modules.
+
+Backend startup initializes and verifies the schema and constructs the PostgreSQL user, settings, authentication, configuration and HTTP authentication services before listening. The services share the user-access connection pool and are exposed by `userAccessServices()` only after successful initialization; they never fall back to in-memory records on database errors. Live login, user management, roles, permissions, modules, organization scopes, approval configurations and visibility profiles use PostgreSQL. Booking, order and tracking workflow access is evaluated using the saved settings. Existing in-memory users and credentials are not migrated.
+
+The `backend/src/lib/userAccessStore.js` implements PostgreSQL create, list, get, partial update and delete for core user records. User management is available under Settings to users with the saved `admin.users` permission. Roles must already exist in PostgreSQL before a user can reference them. The last administrator cannot be deleted or demoted.
+
+The live access-settings endpoints use `backend/src/lib/userAccessSettingsStore.js` for role creation, editing and deletion, role permissions and ordered modules, user module overrides, and ordered booking, order and tracking scopes. Role writes require `admin.roles`; module and scope writes require `admin.users`. The actor's saved permission is rechecked in the write transaction. `initializeCatalogs()` explicitly inserts missing built-in roles and catalog entries without overwriting existing roles or grants; it is not run automatically and creates no administrator user. The Admin role cannot be edited or deleted, and roles assigned to users cannot be deleted. Assigning `null` modules means inherit the role's modules, while an empty array explicitly selects none. Scope writes validate codes against the organization directory or tracking parties, preserve ordering and prune child organization scopes when a parent scope changes.
+
+Authentication loads the session, user, role, modules and scopes together in a read-only PostgreSQL snapshot for each request. Changes apply to subsequent requests; a request already in progress uses its original snapshot. A missing administrator role preview is rejected rather than silently reverting to administrator access. Empty booking and order scopes retain their existing unrestricted read behavior; non-administrator order creation and import require an order scope. Tracking requires the tracking module and an explicit matching organization, including for administrators. Booking creation and templates require the create module; shared booking access requires at least one of the create, bookings or approvals modules. Imports, approvals and orders require their respective modules. Cross-workflow booking/order links require access to both sides. Booking storage remains PostgreSQL; order and tracking integrations are unchanged.
+
+Startup verifies the access schema and database privileges, initializes the default approval configuration if absent, and probes the access tables and saved default before publishing the services. Readiness repeats the schema and runtime checks and returns 503 when either booking or access storage is unavailable. Access tables must not have PostgreSQL row-level security enabled: partially filtered scopes could otherwise be mistaken for unrestricted access. Each authenticated request checks for missing access tables or row security before loading its snapshot and fails closed if either is detected. Access service database outages are logged and reported as 503 without returning cached settings; unexpected programming and validation errors retain their normal error handling. Authenticated responses and readiness are marked `no-store`. Readiness does not require an administrator to exist and is not a substitute for provisioning and testing one.
+
+On an access-service outage the frontend clears its displayed access settings and offers a retry rather than continuing with stale permissions. Older refresh responses cannot overwrite a newer session or role preview, and failed document or text requests are not treated as successful downloads.
+
+`backend/src/lib/accessConfigurationStore.js` persists approval rule configurations, field visibility profiles and per-user assignments. Authorized users can manage these under Settings. Assignments are transactional; assigned configurations cannot be deleted and assigned profiles cannot be deleted or moved to another module. Unassigned visibility means all fields remain visible; an explicitly unassigned approval rule means no rules for that user.
+
+Startup creates the persistent default approval configuration if it is missing, without overwriting later edits. Initially it requires approval for Ocean FCL cargo with total gross weight **greater than 10,000 kg**. New users receive this configuration when no rule assignment is specified; explicitly selecting no rules leaves them unassigned. The bootstrap administrator also receives the default. Existing users are not changed automatically. For a booking whose creator cannot be found, approval evaluation uses the saved default; ambiguous matching creator names fail explicitly. The default may be edited or disabled by an administrator but cannot be deleted through the API. Booking approval evaluation uses the PostgreSQL store.
+
+`backend/src/lib/userAuthentication.js` stores salted scrypt password hashes in `user_credentials`, separately from user records; plaintext passwords and signing secrets are not stored in PostgreSQL. It provides login, signed-session validation, password change and authorized administrator reset. Live user creation writes the record, initial credential and requested assignments in one transaction; editing commits record and assignment changes together. User writes check the actor's current PostgreSQL permission and reject sessions requiring a password change. Reset produces a temporary password once for secure delivery, marks it for mandatory change and revokes existing sessions. Password changes revoke all existing sessions, including the current one, and require sign-in again. Deliver temporary passwords securely; they cannot be retrieved later.
+
+`backend/src/lib/postgresAuthHandlers.js` is mounted for live login and protected-session authentication. A temporary-password session can only access `/api/v1/me` and `/api/v1/auth/change-password`. After a password change, the frontend signs the user out for reauthentication. Enabled workflow and management endpoints require the applicable saved permissions, modules and scopes; other endpoints remain unavailable during integration.
+
+Set `AUTH_SECRET` in the protected backend environment (for example, the ignored `backend/.env` file) to a stable, securely generated secret of at least 32 UTF-8 bytes. Do not share it or commit it to source control. **Backend startup now fails before listening** if it is missing, blank or too short. If `AUTH_TOKEN_TTL_HOURS` is set, it must be a positive finite duration representable in whole milliseconds; otherwise it defaults to eight hours. Invalid values also prevent startup. Use the same secret across restarts; changing it invalidates existing sessions.
+
+PostgreSQL sessions survive a backend restart until expiry, but are invalid after a password change, reset, user deletion or secret rotation. Login locks an existing account for 15 minutes after five failed attempts, persisted across restarts; unknown accounts are not covered by this account lockout and deployment-level rate limiting remains necessary.
+
+A one-time administrator bootstrap is available for creating the first PostgreSQL login. The command refuses to run if any PostgreSQL user exists, initializes missing role catalogs without overwriting existing roles, verifies the Admin grants and stores only a salted hash. The administrator must change the initial password at first login.
+
+From the repository root in PowerShell, replace the name and email with the intended administrator's details and enter a password locally when prompted; do not share the password:
+
+```powershell
+$env:BOOTSTRAP_ADMIN_NAME = 'Admin'
+$env:BOOTSTRAP_ADMIN_EMAIL = 'admin@example.com'
+$securePassword = Read-Host 'Initial administrator password' -AsSecureString
+$bstr = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($securePassword)
+try {
+  $env:BOOTSTRAP_ADMIN_PASSWORD = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($bstr)
+  node --env-file=backend\.env backend\src\lib\userAccessBootstrapCli.js
+} finally {
+  [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($bstr)
+  Remove-Item Env:\BOOTSTRAP_ADMIN_PASSWORD -ErrorAction SilentlyContinue
+  Remove-Variable securePassword -ErrorAction SilentlyContinue
+}
+```
+
+Treat the terminal and local process environment as sensitive while bootstrapping. The command does not print the password. Configure the signing secret separately in the backend's protected environment before activation; do not put it in command history or source control.
+
+If an administrator cannot sign in and no other administrator can reset their password, an operator with access to the protected backend environment and PostgreSQL can recover an existing Admin account locally. This resets its password, clears lockout, revokes its sessions and requires another password change at next login. It does not create an account. Restrict access to the environment and database credentials: anyone with them can perform recovery.
+
+From the repository root in PowerShell, enter the administrator's email and a new temporary password privately (at least eight characters with letters and numbers). Do not share either password in chat:
+
+```powershell
+& {
+  $env:RECOVERY_ADMIN_EMAIL = Read-Host 'Administrator email'
+  $securePassword = Read-Host 'New temporary administrator password' -AsSecureString
+  $bstr = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($securePassword)
+  try {
+    $env:RECOVERY_ADMIN_PASSWORD = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($bstr)
+    node --env-file=backend\.env backend\src\lib\userAccessRecoveryCli.js
+  } finally {
+    [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($bstr)
+    Remove-Item Env:\RECOVERY_ADMIN_PASSWORD, Env:\RECOVERY_ADMIN_EMAIL -ErrorAction SilentlyContinue
+    Remove-Variable securePassword -ErrorAction SilentlyContinue
+  }
+}
+```
+
+After the success message, sign in with that email and temporary password, then choose a different permanent password. If recovery fails, report only the error message without secrets.
+
+Store writes serialize via a PostgreSQL transaction advisory lock, preventing concurrent store operations from deleting or demoting the last `Admin`. All user-writing paths must use the same lock; direct SQL or other writers bypass this protection. This safeguard does not replace the first-administrator bootstrap.
+
+Startup fails explicitly if either PostgreSQL schema cannot be initialized or verified. `/api/ready` returns 503 when either booking or user-access verification fails, with separate `bookingDatabase` and `userAccessDatabase` statuses; errors are logged server-side. The user-access readiness check verifies schema definitions and CRUD privileges, not just connectivity. `/api/health` remains a liveness check. The staged stores propagate database errors rather than falling back to default settings.
+
+PostgreSQL login, user management, roles, modules, organization scopes and configuration management are active, as are the booking, order and tracking routes using saved access settings. Readiness does not verify Azure SQL or external tracking-provider connectivity.
+
+From the repository root, manually initialize or recheck the schema with the configured PostgreSQL connection:
+
+```powershell
+node --env-file=backend\.env backend\src\lib\userAccessMigrate.js
+```
+
+The initializer uses a transaction and an advisory lock, verifies the expected columns, defaults, constraints, email index and CRUD privileges, and rolls back if verification fails. It creates no users or catalog entries and does not modify booking schemas. The configured database role needs database CREATE permission for initial creation, schema USAGE, and SELECT, INSERT, UPDATE and DELETE on each user-access table. Verification deliberately requires the expected PostgreSQL-rendered check expressions; a PostgreSQL upgrade that renders them differently may require a verifier update rather than accepting an unverified schema.
+
+As selected, the staged checks preserve current empty-scope behavior: empty booking and order scopes allow unrestricted visibility, but order creation still requires a nonempty order scope for non-admin users; tracking requires an explicit matching scope and enabled tracking module. The Admin booking/order bypass and current tracking rules remain unchanged. Scope relationships to external organization data require later integration decisions.
+
+Run the isolated workflow suite from the repository root with a dedicated test database and a role allowed to create and drop schemas:
+
+```powershell
+$env:BOOKING_DB_TEST = '1'
+node --env-file=backend\.env --test backend\test\liveUserRestartBoundary.test.js backend\test\accessConfigurationStore.test.js backend\test\userAccessWorkflow.test.js backend\test\postgresAuthHandlers.test.js backend\test\userAccessReadiness.test.js backend\test\userAccessSchema.test.js
+```
+
+These tests create uniquely named access and booking schemas and remove them after execution, or roll back schema creation in a transaction. The live test starts the backend with isolated PostgreSQL access and booking stores, local order data and a stub tracking provider; it exercises authentication, password changes and resets, management, permissions and scopes, approvals, visibility, bookings, order links, tracking, outages and restart persistence. Local test orders remain in memory and disappear on restart; their PostgreSQL booking links persist. The test does not connect to Azure SQL or the external tracking provider and does not establish their live availability. Without `BOOKING_DB_TEST=1`, database-dependent cases are skipped. Other tests, including `userAccessStartup.test.js` and several booking integration tests, use the configured permanent schemas and should only be run against a dedicated test database.
 
 ## Booking PostgreSQL foundation
 

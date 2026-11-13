@@ -1,9 +1,11 @@
 import { createHmac, randomBytes, scryptSync, timingSafeEqual } from "crypto";
 import { db } from "./db.js";
+import { getRole } from "./rbac.js";
+import { validatePasswordStrength } from "./lib/passwordPolicy.js";
+export { validatePasswordStrength } from "./lib/passwordPolicy.js";
 
 const TOKEN_TTL_MS = Number(process.env.AUTH_TOKEN_TTL_HOURS || 8) * 3600 * 1000;
-const SECRET = process.env.AUTH_SECRET || randomBytes(32).toString("hex");
-if (!process.env.AUTH_SECRET) console.warn("AUTH_SECRET is not set; using a random secret (sessions reset on restart).");
+let secret = process.env.AUTH_SECRET;
 
 // Credentials are kept apart from user records so hashes never leak through user APIs.
 const credentials = new Map();
@@ -11,7 +13,13 @@ const attempts = new Map();
 const MAX_ATTEMPTS = 5, LOCK_MS = 15 * 60 * 1000;
 
 const b64 = (s) => Buffer.from(s).toString("base64url");
-const sign = (data) => createHmac("sha256", SECRET).update(data).digest("base64url");
+function sign(data) {
+  if (!secret) {
+    secret = randomBytes(32).toString("hex");
+    console.warn("AUTH_SECRET is not set; using a random secret (sessions reset on restart).");
+  }
+  return createHmac("sha256", secret).update(data).digest("base64url");
+}
 
 function hash(password, salt = randomBytes(16)) { return { salt: salt.toString("hex"), hash: scryptSync(password, salt, 64).toString("hex") }; }
 function verify(password, rec) { const h = scryptSync(password, Buffer.from(rec.salt, "hex"), 64); const e = Buffer.from(rec.hash, "hex"); return h.length === e.length && timingSafeEqual(h, e); }
@@ -28,13 +36,6 @@ export function mustChangePassword(userId) { return !!credentials.get(userId)?.m
 
 // Creates a user's initial password; the caller delivers it (email to be wired up later).
 export function issueInitialPassword(userId) { const pw = generatePassword(); setPassword(userId, pw, true); return pw; }
-
-export function validatePasswordStrength(pw) {
-  if (typeof pw !== "string" || pw.length < 8) return "Password must be at least 8 characters";
-  if (pw.length > 128) return "Password is too long";
-  if (!/[A-Za-z]/.test(pw) || !/\d/.test(pw)) return "Password must contain letters and numbers";
-  return null;
-}
 
 function issueToken(userId) { const body = b64(JSON.stringify({ uid: userId, exp: Date.now() + TOKEN_TTL_MS })); return `${body}.${sign(body)}`; }
 function readToken(token) {
@@ -83,5 +84,6 @@ export function authMiddleware(req, res, next) {
   if (roleOverride && user.role === "Admin" && db.roles[roleOverride]) user = { ...user, role: roleOverride };
   req.realRole = payload ? db.users.find((u) => u.id === payload.uid).role : "";
   req.user = user;
+  req.accessRole = getRole(user.role);
   next();
 }

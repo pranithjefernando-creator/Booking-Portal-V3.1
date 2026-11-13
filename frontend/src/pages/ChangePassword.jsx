@@ -11,7 +11,7 @@ export default function ChangePassword({ forced = false, onDone }) {
     if (!f.currentPassword || !f.newPassword) return setError("All fields are required");
     if (f.newPassword.length < 8 || !/[A-Za-z]/.test(f.newPassword) || !/\d/.test(f.newPassword)) return setError("New password must be at least 8 characters with letters and numbers");
     if (f.newPassword !== f.confirm) return setError("Passwords do not match");
-    setBusy(true); try { await api.post("/auth/change-password", { currentPassword: f.currentPassword, newPassword: f.newPassword }); setDone(true); setF({ currentPassword: "", newPassword: "", confirm: "" }); onDone && onDone(); } catch (err) { setError(err.message); } finally { setBusy(false); }
+    setBusy(true); try { const result = await api.post("/auth/change-password", { currentPassword: f.currentPassword, newPassword: f.newPassword }); if (result.reauthenticate) { logout(); return; } setDone(true); setF({ currentPassword: "", newPassword: "", confirm: "" }); onDone && onDone(); } catch (err) { setError(err.message); } finally { setBusy(false); }
   }
   const form = (<form className="card login-card" onSubmit={submit} noValidate>
     <div className="login-brand">{forced && <Logo size={44} />}<div><div className="login-title">{forced ? "Set a new password" : "Change password"}</div>{forced && <div className="login-sub">You must change your temporary password before continuing.</div>}</div></div>

@@ -1,9 +1,11 @@
+import { getRole } from "../src/rbac.js";
 import assert from "node:assert/strict";
 import { once } from "node:events";
 import { randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { db, seed } from "../src/db.js";
+import { evaluateApproval } from "../src/validation.js";
 import { closeBookingDatabase } from "../src/lib/bookingDatabase.js";
 import { createBookingPool } from "../src/lib/bookingStore.js";
 import { createApp } from "../src/lib/http.js";
@@ -18,7 +20,7 @@ test("booking imports persist, enforce ownership and commit once", { skip: proce
   let server, batchId, sampleId, xlsxId;
   async function start() {
     const app = createApp();
-    app.use((req, res, next) => { req.user = req.header("x-test-other") ? other : owner; next(); });
+    app.use((req, res, next) => { req.user = req.header("x-test-other") ? other : owner; req.accessRole = getRole(req.user.role); req.evaluateBookingApproval = evaluateApproval; next(); });
     app.use("/imports", importsRouter);
     app.use("/bookings", bookingsRouter);
     server = app.listen(0);

@@ -1,3 +1,4 @@
+import { getRole } from "../src/rbac.js";
 import assert from "node:assert/strict";
 import { once } from "node:events";
 import { randomUUID } from "node:crypto";
@@ -16,7 +17,7 @@ test("booking preferences persist across server restarts and remain user-scoped"
   let server;
   async function start() {
     const app = createApp();
-    app.use((req, res, next) => { req.user = req.header("x-test-other") ? other : owner; next(); });
+    app.use((req, res, next) => { req.user = req.header("x-test-other") ? other : owner; req.accessRole = getRole(req.user.role); next(); });
     app.use("/bookings", bookingsRouter);
     server = app.listen(0);
     await once(server, "listening");

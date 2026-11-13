@@ -26,7 +26,7 @@ export default function Layout({ children }) {
     return () => document.removeEventListener("mousedown", onDoc);
   }, [notifOpen]);
   const roles = me?.availableRoles || ["Data Entry", "Ops", "Manager", "Admin"]; const users = me?.availableUsers || [];
-  const visible = NAV.filter((n) => hasModule(n.module) && (!n.perm || can(n.perm)));
+  const visible = NAV.filter((n) => hasModule(n.module) && (!n.perm || can(n.perm) || (n.module === "admin" && can("admin.roles"))));
   const name = me?.user?.name || "User"; const initials = name.split(" ").map((s) => s[0]).slice(0, 2).join("").toUpperCase();
   const subtitle = me?.user?.branchCode ? `${me.user.role} · ${me.user.branchCode}` : me?.user?.role;
   async function runSearch(e) {

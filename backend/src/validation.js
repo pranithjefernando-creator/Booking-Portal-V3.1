@@ -49,6 +49,9 @@ export function evaluateApproval(booking) {
 	const user = db.users.find((item) => item.id === booking.createdByUserId) || db.users.find((item) => item.name === booking.createdBy);
 	const configurationId = user ? user.ruleConfigurationId : db.ruleConfigurations[0]?.id;
 	const configuration = db.ruleConfigurations.find((item) => item.id === configurationId);
+	return evaluateApprovalConfiguration(booking, configuration);
+}
+export function evaluateApprovalConfiguration(booking, configuration) {
 	if (!configuration?.enabled) return null;
 	const matchedRules = (configuration.rules || []).filter((rule) => rule.enabled !== false && (rule.conditions || []).length > 0).filter((rule) => {
 		const checks = rule.conditions.map((condition) => matchesCondition(booking, condition));

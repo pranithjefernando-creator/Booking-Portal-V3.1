@@ -1,6 +1,6 @@
 ﻿import { Router } from "../lib/http.js";
 import { changePassword, issueInitialPassword, removeCredentials, mustChangePassword } from "../auth.js";
-import { db, newUser, canSeeBooking } from "../db.js";
+import { db, newUser, canSeeBooking, canSeeOrder } from "../db.js";
 import { requirePermission, permissionMatrix, PERMISSIONS, MODULES, MODULE_GROUPS, effectiveModules } from "../rbac.js";
 import { reference, isKnownOrg, orgLabel } from "../reference.js";
 import { cwPublicConfig } from "../lib/config.js";
@@ -9,7 +9,7 @@ import { uuid } from "../db.js";
 import { allOrders } from "../lib/orderDb.js";
 import { bookingDatabase } from "../lib/bookingDatabase.js";
 import { trackingOrganizations, trackingPartyOptions, trackingRecords } from "../lib/trackingAccess.js";
-import { FIELD_CATALOG } from "../fieldVisibilityCatalog.js";
+import { normalizeVisibilityProfile, normalizeRuleConfiguration } from "../lib/accessConfigurationValidation.js";
 const router = Router();
 const filterOrgs = (arr) => (Array.isArray(arr) ? arr.filter((c) => isKnownOrg(c)) : []);
 const filterMods = (arr) => (Array.isArray(arr) ? arr.filter((m) => MODULES[m]) : []);
@@ -25,39 +25,10 @@ function visibilityAssignments(input) {
   }
   return { assignments };
 }
-function normalizeVisibilityProfile(input, existing = {}) {
-  if (typeof input?.name !== "string" || !input.name.trim()) return { error: "Profile name is required" };
-  if (!Object.hasOwn(FIELD_CATALOG, input.module)) return { error: "Invalid profile module" };
-  if (!Array.isArray(input.hiddenFields)) return { error: "Hidden fields must be an array" };
-  const fields = new Map(FIELD_CATALOG[input.module].map((field) => [field.key, field]));
-  if (input.hiddenFields.some((key) => typeof key !== "string" || !fields.has(key) || fields.get(key).required)) return { error: "Hidden fields must be recognized optional fields" };
-  return { profile: { id: existing.id || uuid(), name: input.name.trim(), module: input.module, hiddenFields: [...new Set(input.hiddenFields)] } };
-}
-function normalizeRuleConfiguration(input, existing = {}) {
-  const name = String(input?.name || "").trim();
-  if (!name) return { error: "Configuration name is required" };
-  if (!Array.isArray(input?.rules)) return { error: "Rules must be an array" };
-  const rules = [];
-  for (const rule of input.rules) {
-    const ruleName = String(rule?.name || "").trim();
-    if (!ruleName) return { error: "Every rule needs a name" };
-    if (!Array.isArray(rule.conditions) || rule.conditions.length === 0) return { error: `Rule '${ruleName}' needs at least one condition` };
-    const conditions = [];
-    for (const condition of rule.conditions) {
-      const field = RULE_FIELDS.find((item) => item.value === condition?.field);
-      if (!field || !field.operators.includes(condition.operator)) return { error: `Invalid condition in rule '${ruleName}'` };
-      if (condition.value === undefined || condition.value === null || String(condition.value).trim() === "") return { error: `Condition value is required in rule '${ruleName}'` };
-      if (field.type === "number" && !Number.isFinite(Number(condition.value))) return { error: `Condition value must be numeric for ${field.label}` };
-      conditions.push({ id: condition.id || uuid(), field: field.value, operator: condition.operator, value: field.type === "number" ? Number(condition.value) : condition.value });
-    }
-    rules.push({ id: rule.id || uuid(), name: ruleName, enabled: rule.enabled !== false, match: rule.match === "any" ? "any" : "all", conditions });
-  }
-  return { configuration: { id: existing.id || uuid(), name, enabled: input.enabled !== false, rules, updatedAt: new Date().toISOString(), createdAt: existing.createdAt || new Date().toISOString() } };
-}
 router.get("/dashboard/summary", requirePermission("dashboard.view"), async (req, res) => {
   const all = (await bookingDatabase().list()).filter((b) => canSeeBooking(req.user, b));
   const count = (s) => all.filter((b) => b.status === s).length;
-  const kpis = { total: all.length, draft: count("DRAFT"), validated: count("VALIDATED"), completed: count("COMPLETED"), cfsReceived: all.filter((b) => b.cfsReceived).length, orders: allOrders().length };
+  const kpis = { total: all.length, draft: count("DRAFT"), validated: count("VALIDATED"), completed: count("COMPLETED"), cfsReceived: all.filter((b) => b.cfsReceived).length, orders: req.accessRole.permissions.includes("order.view") && effectiveModules(req.user, req.accessRole).includes("orders") ? allOrders().filter((order) => canSeeOrder(req.user, order)).length : 0 };
   const now = new Date();
   const months = Array.from({ length: 6 }, (_, i) => {
     const date = new Date(now.getFullYear(), now.getMonth() - 5 + i, 1);
@@ -158,7 +129,8 @@ router.post("/auth/change-password", changePassword);
 router.post("/users/:id/reset-password", requirePermission("admin.users"), (req, res) => { const u = db.users.find((x) => x.id === req.params.id); if (!u) return res.status(404).json({ error: "User not found" }); res.json({ initialPassword: issueInitialPassword(u.id) }); });
 router.get("/me", (req, res) => { const def = db.roles[req.user.role] || { permissions: [], modules: [] }; const fieldVisibility = Object.fromEntries(Object.entries(visibilityAssignmentKeys).map(([module, key]) => [module, [...(db.fieldVisibilityProfiles.find((profile) => profile.id === req.user[key] && profile.module === module)?.hiddenFields || [])]])); res.json({ fieldVisibility, user: req.user, realRole: req.realRole, mustChangePassword: mustChangePassword(req.user.id), permissions: def.permissions, modules: effectiveModules(req.user), availableRoles: Object.keys(db.roles), availableUsers: db.users.map((u) => ({ id: u.id, name: u.name, email: u.email, role: u.role })) }); });
 router.get("/notifications/summary", async (req, res) => {
-  const user = req.user; const def = db.roles[user.role] || { permissions: [] }; const can = (p) => def.permissions.includes(p);
+  const user = req.user; const def = req.accessRole; if (!def) throw new Error("Missing authenticated access role"); const can = (p) => def.permissions.includes(p);
+  if (!effectiveModules(user, def).some((module) => ["dashboard", "create", "import", "approvals", "bookings"].includes(module))) return res.json({ total: 0, items: [] });
   if (!can("booking.approve") && !can("booking.edit") && !can("booking.validate")) return res.json({ total: 0, items: [] });
   const snapshot = (await bookingDatabase().listNotificationSnapshot()).filter(({ booking }) => canSeeBooking(user, booking));
   const visible = snapshot.map(({ booking }) => booking);
