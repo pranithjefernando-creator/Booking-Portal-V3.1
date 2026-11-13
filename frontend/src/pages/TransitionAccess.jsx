@@ -16,7 +16,7 @@ const scopeFields = [
 const userFields = { shipperOrgs: "bookingShipperOrgs", consigneeOrgs: "bookingConsigneeOrgs", supplierOrgs: "orderSupplierOrgs", buyerOrgs: "orderBuyerOrgs" };
 const toggle = (list, value) => list.includes(value) ? list.filter((item) => item !== value) : [...list, value];
 
-export default function TransitionAccess() {
+export default function TransitionAccess({ section }) {
   const { me, refresh } = useAuth();
   const [catalog, setCatalog] = useState(null);
   const [roles, setRoles] = useState([]);
@@ -34,17 +34,19 @@ export default function TransitionAccess() {
   const canUsers = me.permissions.includes("admin.users");
   async function load() {
     try {
+      const loadRoles = section === "roles" && canRoles;
+      const loadUsers = section === "scope" && canUsers;
       const tasks = [api.get("/rbac/catalog")];
-      if (canRoles) tasks.push(api.get("/roles"));
-      if (canUsers) tasks.push(api.get("/users"));
+      if (loadRoles) tasks.push(api.get("/roles"));
+      if (loadUsers) tasks.push(api.get("/users"));
       const result = await Promise.all(tasks);
       setCatalog(result[0]);
       let index = 1;
-      if (canRoles) setRoles(result[index++].items);
-      if (canUsers) setUsers(result[index].items);
+      if (loadRoles) setRoles(result[index++].items);
+      if (loadUsers) setUsers(result[index].items);
     } catch (e) { setError(e.message); }
   }
-  useEffect(() => { load(); }, [canRoles, canUsers]);
+  useEffect(() => { load(); }, [canRoles, canUsers, section]);
   function chooseUser(id) {
     setSelected(id);
     const user = users.find((item) => item.id === id);
@@ -75,9 +77,9 @@ export default function TransitionAccess() {
   }
   if (!catalog) return <section className="card">{error ? <p role="alert">{error}</p> : <p>Loading access settings...</p>}</section>;
   return <section className="card">
-    <h2>Roles and access settings</h2>
+    <h2>{section === "roles" ? "Role and access settings" : "User modules and scope"}</h2>
     {error && <p role="alert">{error}</p>}{notice && <p role="status">{notice}</p>}
-    {canRoles && <div>
+    {section === "roles" && canRoles && <div>
       <h3>Roles</h3>
       <ul>{roles.map((item) => <li key={item.name}>{item.name} {item.name !== "Admin" && <>
         <button type="button" className="btn btn-sm" onClick={() => { setRole({ name: item.name, description: item.description, permissions: item.permissions, modules: item.modules }); setEditing(true); }}>Edit</button>{" "}
@@ -92,7 +94,7 @@ export default function TransitionAccess() {
         {editing && <button type="button" className="btn" onClick={() => { setRole(blankRole); setEditing(false); }}>Cancel</button>}
       </form>
     </div>}
-    {canUsers && <div>
+    {section === "scope" && canUsers && <div>
       <h3>User modules and scopes</h3>
       <label>User <select value={selected} onChange={(e) => chooseUser(e.target.value)}><option value="">Select a user</option>{users.map((user) => <option key={user.id} value={user.id}>{user.name} ({user.email})</option>)}</select></label>
       {selected && <>
