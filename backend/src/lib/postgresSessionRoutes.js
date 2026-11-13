@@ -26,6 +26,8 @@ export function createPostgresSessionRouter(services) {
         (["GET", "POST"].includes(req.method) && /^\/api\/v1\/(rule-configurations|field-visibility-profiles)$/.test(req.path)) ||
         (["PUT", "DELETE"].includes(req.method) && /^\/api\/v1\/(rule-configurations|field-visibility-profiles)\/[^/]+$/.test(req.path)) ||
         (req.method === "POST" && /^\/api\/v1\/users\/[^/]+\/rule-configuration$/.test(req.path))) return next();
+    if ((req.method === "GET" && req.path === "/api/v1/admin/operations") ||
+        (req.method === "POST" && /^\/api\/v1\/admin\/operations\/[^/]+\/reconcile$/.test(req.path))) return next();
     const modules = effectiveModules(req.user, req.accessRole);
     const workflow = (prefix) => req.path === `/api/v1/${prefix}` || req.path.startsWith(`/api/v1/${prefix}/`);
     if (workflow("bookings")) {
@@ -41,7 +43,10 @@ export function createPostgresSessionRouter(services) {
     if (workflow("tracking") || workflow("port-congestion")) return next();
     if (req.method === "GET" && (workflow("reference") || ["/api/v1/notifications/summary", "/api/v1/cw/config"].includes(req.path))) return next();
     if (req.method === "GET" && workflow("dashboard") && modules.includes("dashboard")) return next();
-    if (req.method === "GET" && req.path === "/api/v1/audit-logs" && modules.includes("audit")) return next();
+    if (req.method === "GET" && req.path === "/api/v1/audit-logs") {
+      if (!modules.includes("audit")) return res.status(403).json({ error: "audit module access is not enabled" });
+      return next();
+    }
     return res.status(503).json({ error: "This feature is temporarily unavailable while access settings are being integrated." });
   });
   router.get("/me", async (req, res) => {

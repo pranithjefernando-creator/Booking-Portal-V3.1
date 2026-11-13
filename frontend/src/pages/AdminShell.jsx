@@ -7,7 +7,8 @@ const sections = [
   { path: "users", label: "User management", permission: "admin.users" },
   { path: "approval-visibility", label: "Approval and visibility configurations", permission: "admin.users" },
   { path: "roles", label: "Role and access settings", permission: "admin.roles" },
-  { path: "user-scope", label: "User modules and scope", permission: "admin.users" }
+  { path: "user-scope", label: "User modules and scope", permission: "admin.users" },
+  { path: "operations", label: "Operation reconciliation", permission: "admin.users" }
 ];
 
 export function AdminIndex() {

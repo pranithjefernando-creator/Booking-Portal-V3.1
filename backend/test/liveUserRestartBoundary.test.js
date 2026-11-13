@@ -33,6 +33,7 @@ test("live PostgreSQL access controls workflows across changes and restarts", { 
   let bookingRenamed = false;
   let child;
   const bookingIds = [];
+  const bookingReferences = [];
   let errors = "";
   const probe = net.createServer();
   probe.listen(0, "127.0.0.1");
@@ -81,6 +82,7 @@ test("live PostgreSQL access controls workflows across changes and restarts", { 
     assert.notEqual(storedCredential.password_hash.toString("utf8"), initialPassword);
     await start();
     assert.equal((await request("/api/v1/bookings", "GET")).status, 401);
+    assert.equal((await request("/api/v1/audit-logs", "GET")).status, 401);
     assert.equal((await request("/api/v1/me", "GET", undefined, "invalid-token")).status, 401);
     assert.equal((await request("/api/auth/login", "POST", { email: "pranithf@efl.example", password: "Initial-Password1" })).status, 401);
     assert.equal((await login("Wrong-Password1")).status, 401);
@@ -105,8 +107,25 @@ test("live PostgreSQL access controls workflows across changes and restarts", { 
     for (const code of ["TESTCO", "LRG"]) {
       const response = await request("/api/v1/bookings", "POST", { cwOrgCode: code, goodsDescription: `access-test-${randomUUID()}` }, current.token);
       assert.equal(response.status, 201);
-      bookingIds.push((await response.json()).id);
+      const booking = await response.json();
+      bookingIds.push(booking.id);
+      bookingReferences.push(booking.reference);
     }
+    const auditResponse = await request("/api/v1/audit-logs", "GET", undefined, current.token);
+    assert.equal(auditResponse.status, 200);
+    const createdAudit = await auditResponse.json();
+    for (const reference of bookingReferences) {
+      assert.ok(createdAudit.items.some((event) => event.action === "CREATE" && event.entityId === reference && event.actorName === "Test administrator"));
+    }
+    assert.equal((await request("/api/v1/audit-logs", "GET", undefined, current.token, "Data Entry")).status, 403);
+    const auditRole = { name: "Audit test role", description: "Test audit access", permissions: [], modules: ["audit"] };
+    assert.equal((await request("/api/v1/roles", "POST", auditRole, current.token)).status, 201);
+    assert.equal((await request("/api/v1/audit-logs", "GET", undefined, current.token, auditRole.name)).status, 403);
+    assert.equal((await request("/api/v1/roles/Audit%20test%20role", "PUT", { ...auditRole, permissions: ["audit.view"], modules: [] }, current.token)).status, 200);
+    assert.equal((await request("/api/v1/audit-logs", "GET", undefined, current.token, auditRole.name)).status, 403);
+    assert.equal((await request("/api/v1/roles/Audit%20test%20role", "PUT", { ...auditRole, permissions: ["audit.view"] }, current.token)).status, 200);
+    assert.equal((await request("/api/v1/audit-logs", "GET", undefined, current.token, auditRole.name)).status, 200);
+    assert.equal((await request("/api/v1/roles/Audit%20test%20role", "DELETE", undefined, current.token)).status, 200);
     assert.equal((await request("/api/v1/users", "GET", undefined, current.token)).status, 200);
     assert.equal((await request("/api/v1/users", "GET", undefined, current.token, "Data Entry")).status, 403);
     assert.equal((await request("/api/v1/bookings", "GET", undefined, current.token, "Missing preview role")).status, 403);
@@ -253,12 +272,15 @@ test("live PostgreSQL access controls workflows across changes and restarts", { 
     bookingRenamed = true;
     assert.equal((await request("/api/ready", "GET")).status, 503);
     assert.equal((await request("/api/v1/bookings", "GET", undefined, current.token)).status, 500);
+    assert.equal((await request("/api/v1/audit-logs", "GET", undefined, current.token)).status, 500);
     await pool.query(`ALTER SCHEMA ${unavailableBookingSchema} RENAME TO ${bookingSchema}`);
     bookingRenamed = false;
     assert.equal((await request("/api/ready", "GET")).status, 200);
     await stop();
     await start();
     assert.equal((await request("/api/v1/me", "GET", undefined, current.token)).status, 200);
+    const afterRestartAudit = await (await request("/api/v1/audit-logs", "GET", undefined, current.token)).json();
+    for (const event of createdAudit.items) assert.ok(afterRestartAudit.items.some((persisted) => persisted.id === event.id && persisted.action === event.action && persisted.entityId === event.entityId));
     assert.equal((await request(`/api/v1/bookings/${bookingIds[0]}`, "GET", undefined, userLogin.token)).status, 200);
     assert.equal((await request(`/api/v1/bookings/${bookingIds[1]}`, "GET", undefined, userLogin.token)).status, 403);
     const afterRestart = await (await request(`/api/v1/bookings/${heavyId}`, "GET", undefined, userLogin.token)).json();

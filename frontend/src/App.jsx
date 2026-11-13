@@ -21,6 +21,7 @@ import TransitionUsers from "./pages/TransitionUsers.jsx";
 import TransitionAccess from "./pages/TransitionAccess.jsx";
 import TransitionConfigurations from "./pages/TransitionConfigurations.jsx";
 import AdminShell, { AdminIndex, AdminSection } from "./pages/AdminShell.jsx";
+import AdminOperations from "./pages/AdminOperations.jsx";
 export default function App() {
   const { loading, token, me, accessError, refresh, logout } = useAuth();
   if (!token) return <Login />;
@@ -40,6 +41,7 @@ export default function App() {
       <Route path="approval-visibility" element={<AdminSection permission="admin.users"><TransitionConfigurations /></AdminSection>} />
       <Route path="roles" element={<AdminSection permission="admin.roles"><TransitionAccess section="roles" /></AdminSection>} />
       <Route path="user-scope" element={<AdminSection permission="admin.users"><TransitionAccess section="scope" /></AdminSection>} />
+      <Route path="operations" element={<AdminSection permission="admin.users"><AdminOperations /></AdminSection>} />
     </Route>
     <Route path="/account" element={<ChangePassword />} /><Route path="*" element={<div className="card">Page not found.</div>} />
   </Routes></Layout>);

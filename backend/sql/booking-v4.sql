@@ -164,3 +164,37 @@ CREATE TABLE IF NOT EXISTS booking_portal_v4.order_links (
   booking_id text NOT NULL REFERENCES booking_portal_v4.bookings(id)
 );
 CREATE INDEX IF NOT EXISTS order_links_booking_id_idx ON booking_portal_v4.order_links (booking_id);
+
+CREATE TABLE IF NOT EXISTS booking_portal_v4.audit_events (
+  id text PRIMARY KEY,
+  occurred_at timestamptz NOT NULL DEFAULT now(),
+  actor_id text,
+  actor_name text NOT NULL,
+  actor_role text NOT NULL,
+  action text NOT NULL,
+  entity_type text NOT NULL,
+  entity_id text NOT NULL,
+  before_data jsonb,
+  after_data jsonb
+);
+CREATE INDEX IF NOT EXISTS audit_events_newest_idx ON booking_portal_v4.audit_events (occurred_at DESC, id DESC);
+
+CREATE TABLE IF NOT EXISTS booking_portal_v4.external_operations (
+  id text PRIMARY KEY,
+  operation_key text NOT NULL,
+  kind text NOT NULL CHECK (kind IN ('CW_COMPLETE', 'CW_SEND', 'ORDER_CREATE', 'ORDER_DELETE')),
+  entity_id text NOT NULL,
+  entity_ref text NOT NULL,
+  actor_id text,
+  actor_name text NOT NULL,
+  actor_role text NOT NULL,
+  details jsonb NOT NULL DEFAULT '{}'::jsonb CHECK (jsonb_typeof(details) = 'object'),
+  status text NOT NULL DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'COMPLETED', 'ABORTED', 'RECONCILED')),
+  started_at timestamptz NOT NULL DEFAULT now(),
+  resolved_at timestamptz,
+  resolution jsonb
+);
+CREATE UNIQUE INDEX IF NOT EXISTS external_operations_pending_key_idx
+  ON booking_portal_v4.external_operations (operation_key) WHERE status = 'PENDING';
+CREATE INDEX IF NOT EXISTS external_operations_pending_time_idx
+  ON booking_portal_v4.external_operations (started_at DESC, id DESC) WHERE status = 'PENDING';

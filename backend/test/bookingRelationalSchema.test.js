@@ -40,6 +40,24 @@ test("relational booking schema stores scalar fields and related records", { ski
       ["booking_containers", "count", "numeric"], ["booking_documents", "content", "bytea"],
       ["booking_documents", "size", "bigint"]
     ]) assert.equal(columns.get(`${table}.${column}`).data_type, type);
+    for (const [column, type, nullable] of [
+      ["id", "text", "NO"], ["occurred_at", "timestamp with time zone", "NO"],
+      ["actor_id", "text", "YES"], ["actor_name", "text", "NO"], ["actor_role", "text", "NO"],
+      ["action", "text", "NO"], ["entity_type", "text", "NO"], ["entity_id", "text", "NO"],
+      ["before_data", "jsonb", "YES"], ["after_data", "jsonb", "YES"]
+    ]) {
+      const field = columns.get(`audit_events.${column}`);
+      assert.ok(field, `audit_events.${column} is missing`);
+      assert.equal(field.data_type, type);
+      assert.equal(field.is_nullable, nullable);
+    }
+    const auditIndex = await client.query("SELECT indexdef FROM pg_indexes WHERE schemaname = $1 AND indexname = 'audit_events_newest_idx'", [schema]);
+    assert.match(auditIndex.rows[0].indexdef, /\(occurred_at DESC, id DESC\)/);
+    await client.query(`INSERT INTO ${schema}.audit_events (id, actor_name, actor_role, action, entity_type, entity_id, before_data, after_data) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`, ["audit-1", "User", "Admin", "UPDATE", "Booking", "BK-1", { status: "DRAFT" }, { status: "VALIDATED" }]);
+    const audit = (await client.query(`SELECT occurred_at, before_data, after_data FROM ${schema}.audit_events WHERE id = $1`, ["audit-1"])).rows[0];
+    assert.ok(audit.occurred_at instanceof Date);
+    assert.deepEqual(audit.before_data, { status: "DRAFT" });
+    assert.deepEqual(audit.after_data, { status: "VALIDATED" });
     assert.ok(!columns.has("bookings.data"));
     await client.query(`INSERT INTO ${schema}.bookings (id, reference, status, cargo_ready_date) VALUES ($1, $2, $3, $4)`, ["booking", "reference", "DRAFT", "2027-01-01"]);
     await client.query(`INSERT INTO ${schema}.bookings (id, reference) VALUES ($1, $2)`, ["empty-draft", "reference-2"]);

@@ -47,7 +47,9 @@ router.get("/dashboard/summary", requirePermission("dashboard.view"), async (req
   res.json({ kpis, months: months.map(({ year, month, ...item }) => item), recent });
 });
 router.get("/cw/config", requirePermission("dashboard.view"), (req, res) => res.json(cwPublicConfig()));
-router.get("/audit-logs", requirePermission("audit.view"), (req, res) => res.json({ total: db.audit.length, items: db.audit.slice(0, 200) }));
+router.get("/audit-logs", requirePermission("audit.view"), async (req, res) => res.json(await bookingDatabase().listAuditEvents()));
+router.get("/admin/operations", requirePermission("admin.users"), async (req, res) => res.json({ items: await bookingDatabase().listPendingOperations() }));
+router.post("/admin/operations/:id/reconcile", requirePermission("admin.users"), async (req, res) => res.json(await bookingDatabase().reconcileOperation(req.params.id, req.user, req.body)));
 router.get("/rbac/matrix", requirePermission("dashboard.view"), (req, res) => res.json({ roles: Object.keys(db.roles), matrix: permissionMatrix() }));
 router.get("/rbac/catalog", requirePermission("dashboard.view"), (req, res) => res.json({ permissions: PERMISSIONS, modules: MODULES, moduleGroups: MODULE_GROUPS }));
 router.get("/users", requirePermission("admin.users"), (req, res) => res.json({ total: db.users.length, items: db.users }));

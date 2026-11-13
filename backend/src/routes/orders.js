@@ -1,5 +1,5 @@
 import { Router } from "../lib/http.js";
-import { db, uuid, addAudit, canSeeOrder, canSeeBooking, userHasOrderAccess, makeOrder, defaultOrderOrg, orderSupplierOrgsFor, orderBuyerOrgsFor, toOptions } from "../db.js";
+import { db, uuid, canSeeOrder, canSeeBooking, userHasOrderAccess, makeOrder, defaultOrderOrg, orderSupplierOrgsFor, orderBuyerOrgsFor, toOptions } from "../db.js";
 import { requestCan, requirePermission, hasBookingModule, requireBookingModule } from "../rbac.js";
 import { validateOrder } from "../validation.js";
 import { readXlsx, sheetToObjects } from "../lib/xlsx.js";
@@ -65,9 +65,44 @@ router.get("/", requirePermission("order.view"), async (req, res) => {
 });
 router.get("/:id", requirePermission("order.view"), async (req, res) => { const o = findOrder(req.params.id); if (!o) return res.status(404).json({ error: "Order not found" }); if (!canSeeOrder(req.user, o)) return res.status(403).json({ error: "This order is outside your assigned CW organizations" }); res.json({ ...withLink(o, await orderLinks(req)), documents: (o.documents || []).map(docMeta), overdue: isOverdue(o) }); });
 function applyPartners(o) { if (o.supplierCode) { const d = orgDetails(o.supplierCode); o.supplierName = orgLabel(o.supplierCode); o.supplier = { ...(o.supplier || {}), name: d.name, address: o.supplier?.address || [d.address1, d.address2, d.city, d.state, d.postCode, d.country].filter(Boolean).join(", ") }; } if (o.buyerCode) { const d = orgDetails(o.buyerCode); o.buyerName = orgLabel(o.buyerCode); o.delivery = { ...(o.delivery || {}), name: d.name, address: o.delivery?.address || [d.address1, d.address2, d.city, d.state, d.postCode, d.country].filter(Boolean).join(", ") }; } if (!o.cwOrgCode && o.supplierCode) o.cwOrgCode = o.supplierCode; }
-router.post("/", requirePermission("order.create"), (req, res) => { if (!userHasOrderAccess(req.user)) return res.status(403).json({ error: "You have no Order data scope configured." }); const body = req.body || {}; const errors = validateOrder(body); if (errors.length) return res.status(400).json({ status: "INVALID", errors }); const o = makeOrder({ ...body, bookingId: "", bookingRef: "", createdBy: req.user.name }); applyPartners(o); if (!o.cwOrgCode) o.cwOrgCode = defaultOrderOrg(req.user); if (!canSeeOrder(req.user, o)) return res.status(403).json({ error: "Outside your CW organizations" }); o.updatedBy = req.user.name; (o.orderLines || []).forEach((l) => { if (!l.id) l.id = uuid(); }); o.documents = o.documents || []; db.orders.push(o); addAudit({ user: req.user, action: "ORDER_CREATE", entityType: "Order", entityId: o.reference }); res.status(201).json(o); });
+router.post("/", requirePermission("order.create"), async (req, res) => {
+  if (!userHasOrderAccess(req.user)) return res.status(403).json({ error: "You have no Order data scope configured." });
+  const body = req.body || {}; const errors = validateOrder(body);
+  if (errors.length) return res.status(400).json({ status: "INVALID", errors });
+  const o = makeOrder({ ...body, bookingId: "", bookingRef: "", createdBy: req.user.name });
+  applyPartners(o); if (!o.cwOrgCode) o.cwOrgCode = defaultOrderOrg(req.user);
+  if (!canSeeOrder(req.user, o)) return res.status(403).json({ error: "Outside your CW organizations" });
+  o.updatedBy = req.user.name; (o.orderLines || []).forEach((l) => { if (!l.id) l.id = uuid(); }); o.documents = o.documents || [];
+  const identity = [o.orderNo, o.orderNoSplit].map((value) => String(value || "").trim().toUpperCase());
+  await bookingDatabase().runExternalOperation({
+    key: `order:create:${JSON.stringify(identity)}`, kind: "ORDER_CREATE", entityId: o.id, entityRef: o.reference, user: req.user,
+    details: { orderNo: o.orderNo, orderNoSplit: o.orderNoSplit, supplierCode: o.supplierCode, buyerCode: o.buyerCode }
+  }, async (operation) => {
+    db.orders.push(o);
+    await operation.complete({ user: req.user, action: "ORDER_CREATE", entityType: "Order", entityId: o.reference });
+  });
+  res.status(201).json(o);
+});
 router.put("/:id", requirePermission("order.create"), async (req, res) => { const o = findOrder(req.params.id); if (!o) return res.status(404).json({ error: "Order not found" }); if (!canSeeOrder(req.user, o)) return res.status(403).json({ error: "Outside your CW organizations" }); const links = await orderLinks(req); const updated = { ...o, ...req.body, id: o.id, reference: o.reference, bookingId: "", bookingRef: "", documents: o.documents, createdAt: o.createdAt, createdBy: o.createdBy, updatedBy: req.user.name, updatedAt: new Date().toISOString() }; applyPartners(updated); if (!canSeeOrder(req.user, updated)) return res.status(403).json({ error: "Outside your CW organizations" }); Object.assign(o, updated); (o.orderLines || []).forEach((l) => { if (!l.id) l.id = uuid(); }); res.json({ ...withLink(o, links), documents: (o.documents || []).map(docMeta) }); });
-router.delete("/:id", requirePermission("order.delete"), async (req, res) => { if (isSqlOrder(findOrder(req.params.id))) return res.status(400).json({ error: "Orders sourced from the SQL database cannot be deleted in the portal" }); const idx = db.orders.findIndex((x) => x.id === req.params.id); if (idx < 0) return res.status(404).json({ error: "Order not found" }); const o = db.orders[idx]; if (!canSeeOrder(req.user, o)) return res.status(403).json({ error: "Outside your CW organizations" }); const result = await bookingDatabase().unlinkOrder(o.id, (b) => requestCan(req, "booking.view") && hasBookingModule(req) && canSeeBooking(req.user, b)); if (result.status === "forbidden") return res.status(403).json({ error: "Outside your booking organizations" }); const currentIndex = db.orders.findIndex((x) => x.id === o.id); if (currentIndex >= 0) db.orders.splice(currentIndex, 1); addAudit({ user: req.user, action: "ORDER_DELETE", entityType: "Order", entityId: o.reference }); res.json({ ok: true }); });
+router.delete("/:id", requirePermission("order.delete"), async (req, res) => {
+  if (isSqlOrder(findOrder(req.params.id))) return res.status(400).json({ error: "Orders sourced from the SQL database cannot be deleted in the portal" });
+  const o = db.orders.find((item) => item.id === req.params.id);
+  if (!o) return res.status(404).json({ error: "Order not found" });
+  if (!canSeeOrder(req.user, o)) return res.status(403).json({ error: "Outside your CW organizations" });
+  const response = await bookingDatabase().runExternalOperation({
+    key: `order:delete:${o.id}`, kind: "ORDER_DELETE", entityId: o.id, entityRef: o.reference, user: req.user,
+    details: { orderNo: o.orderNo, orderNoSplit: o.orderNoSplit, supplierCode: o.supplierCode, buyerCode: o.buyerCode }
+  }, async (operation) => {
+    if (!db.orders.some((item) => item.id === o.id)) { await operation.abort(); return { status: 404, body: { error: "Order not found" } }; }
+    const result = await bookingDatabase().unlinkOrder(o.id, (b) => requestCan(req, "booking.view") && hasBookingModule(req) && canSeeBooking(req.user, b), undefined, { client: operation.client });
+    if (result.status === "forbidden") { await operation.abort(); return { status: 403, body: { error: "Outside your booking organizations" } }; }
+    const index = db.orders.findIndex((item) => item.id === o.id);
+    if (index >= 0) db.orders.splice(index, 1);
+    await operation.complete({ user: req.user, action: "ORDER_DELETE", entityType: "Order", entityId: o.reference });
+    return { status: 200, body: { ok: true } };
+  });
+  res.status(response.status).json(response.body);
+});
 router.post("/:id/link-booking", requirePermission("order.create"), requirePermission("booking.view"), requireBookingModule, async (req, res) => { const o = findOrder(req.params.id); if (!o) return res.status(404).json({ error: "Order not found" }); if (!canSeeOrder(req.user, o)) return res.status(403).json({ error: "Outside your CW organizations" }); if (typeof req.body?.bookingId !== "string" || !req.body.bookingId) return res.status(400).json({ error: "Booking id is required" }); const result = await bookingDatabase().linkOrder(o.id, req.body.bookingId, (b) => canSeeBooking(req.user, b)); if (result.status === "not_found") return res.status(404).json({ error: "Booking not found" }); if (result.status === "forbidden") return res.status(403).json({ error: "Outside your booking organizations" }); if (result.status === "conflict") return res.status(409).json({ error: "Order is already linked to another booking. Unlink it before linking to another booking." }); res.json({ ok: true, bookingRef: result.bookingRef }); });
 router.post("/:id/unlink-booking", requirePermission("order.create"), requirePermission("booking.view"), requireBookingModule, async (req, res) => { const o = findOrder(req.params.id); if (!o) return res.status(404).json({ error: "Order not found" }); if (!canSeeOrder(req.user, o)) return res.status(403).json({ error: "Outside your CW organizations" }); if (req.body?.bookingId !== undefined && (typeof req.body.bookingId !== "string" || !req.body.bookingId)) return res.status(400).json({ error: "Invalid booking id" }); const result = await bookingDatabase().unlinkOrder(o.id, (b) => canSeeBooking(req.user, b), req.body?.bookingId); if (result.status === "forbidden") return res.status(403).json({ error: "Outside your booking organizations" }); if (result.status === "conflict") return res.status(409).json({ error: "Order is linked to a different booking" }); res.json({ ok: true }); });
 router.post("/:id/documents", requirePermission("order.create"), (req, res) => { const o = findOrder(req.params.id); if (!o) return res.status(404).json({ error: "Order not found" }); if (!canSeeOrder(req.user, o)) return res.status(403).json({ error: "Outside your CW organizations" }); if (!req.file) return res.status(400).json({ error: "No file provided" }); const doc = { id: uuid(), fileName: req.file.originalname || "document.bin", size: req.file.buffer.length, contentBase64: req.file.buffer.toString("base64"), uploadedBy: req.user.name }; o.documents = o.documents || []; o.documents.push(doc); res.status(201).json({ document: docMeta(doc) }); });

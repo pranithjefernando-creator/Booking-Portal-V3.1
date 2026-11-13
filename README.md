@@ -130,6 +130,22 @@ These tests create uniquely named access and booking schemas and remove them aft
 
 Booking operations now use the relational `booking_portal_v4` schema in `backend/sql/booking-v4.sql`. Restart the backend to load the change. Startup and `npm run booking:migrate` initialize and verify v4; startup fails before listening if v4 is incompatible or unavailable, and `/api/ready` returns 503 if it becomes unavailable. The configured PostgreSQL role needs permission to create the v4 schema and objects, and the required table access. Startup and booking operations no longer initialize or write to `booking_portal_v3`.
 
+The v4 initializer creates and verifies the `audit_events` table and its newest-first index. The database role requires `SELECT` and `INSERT` on this table; no audit `UPDATE` or `DELETE` privileges are required. Booking, approval and order audit events are written to PostgreSQL. The audit API and page read the newest 200 events from PostgreSQL, with the full event count; a load failure is shown explicitly with a retry option. Earlier in-memory entries, including the seed event, are not migrated.
+
+For audit release verification, use a dedicated test database with a role allowed to create and drop schemas:
+
+```powershell
+$env:BOOKING_DB_TEST = '1'
+node --env-file=backend\.env --test backend\test\auditStore.test.js backend\test\auditRoutes.test.js backend\test\liveUserRestartBoundary.test.js
+node --env-file=backend\.env --test --test-name-pattern='v4 audit schema' backend\test\bookingRelationalStartup.test.js
+```
+
+These tests use isolated schemas and cover event writes, access permissions, newest-first ordering and the 200-entry limit, database failures, and backend restart persistence. The live test uses mock CargoWise and local order data. Before deployment, confirm the database role's privileges, back up according to the environment's procedures, and schedule a restart when no CargoWise operations are in flight; portal-created orders are lost on restart. After deployment, check `/api/ready` and verify the audit page with an authorized account and an approved test booking. Do not simulate database failures or change permissions on a shared production schema.
+
+Booking and approval audit writes share the booking transaction. CargoWise and portal order create/delete operations record a durable intent in `external_operations` before making non-transactional changes. A pending operation blocks the same retry; uncertain CargoWise operations also block booking changes. No automatic retry is attempted. The PostgreSQL role requires `SELECT`, `INSERT` and `UPDATE` on `external_operations`.
+
+Users with `admin.users` can review pending operations in Settings > Operation reconciliation. Check CargoWise or the portal independently, including whether a request is still in flight, then record an applied/not-applied outcome and notes. Confirmed CargoWise operations require the actual CargoWise reference and update the booking; a confirmed not-applied completion restores its prior status. A running operation cannot be reconciled. Portal orders remain in memory and disappear on restart: reconciliation records the administrator's finding but does not restore an order or recreate a removed booking link. When an order create is uncertain, retries with the same normalized order number and split are blocked while it remains pending. If a response is lost after an operation is marked complete, no pending entry is shown and the server cannot identify a retry: check the order or booking and consult an administrator before retrying. A repeated order deletion can return 404 after the order was removed even if its audit is pending; verify both the order and any linked booking before resolving it. The journal and audit records do not make CargoWise or in-memory orders transactional.
+
 The relational design stores booking fields as typed columns; shipper and consignee details, cargo lines, containers, and documents have separate booking-owned tables. Cargo and container positions preserve display order, and document content is stored as bytes with a checked size. Optional fields remain nullable so incomplete drafts can be saved; validation still applies before advancing a booking. Small `additional_data` JSON objects are reserved for fields not explicitly modeled, rather than storing the entire booking. Approvals, imports, templates and preferences retain JSONB payloads in their separate tables. Order links remain separate and do not write to Azure SQL.
 
 The store maps records and child objects transactionally, converts empty date and numeric inputs to SQL `NULL`, and reconstructs the API shape, including base64 documents. Its `additional_data` metadata preserves unmapped fields and input representations. Approvals, imports, order links, templates, layouts, booking lists, counts, dashboard, notifications and order booking selectors use v4. Notification snapshots read bookings and approvals in a consistent transaction without loading document contents. New bookings and imported bookings receive a `BKV4-` prefix followed by a randomly generated UUID, with a unique database constraint; the old v3 reference sequence is not used. External systems should be checked for compatibility with the new reference format.
@@ -233,7 +249,7 @@ Run `npm --prefix backend test` for mocked integration/cache tests and the exist
 
 ## Production hardening notes
 
-The current demo authentication uses the `x-user-email` and `x-user-role` headers and the backend data store is in memory. Before production deployment, replace that authentication flow with verified OIDC/JWT claims and move bookings, orders, approvals, users, and audit records to a transactional database.
+Portal-created orders remain in memory. Before production deployment, persist portal orders and review authentication and deployment security controls.
 
 The HTTP server supports these deployment controls:
 

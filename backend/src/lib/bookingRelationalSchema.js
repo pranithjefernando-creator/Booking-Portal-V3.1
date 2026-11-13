@@ -18,7 +18,9 @@ const tables = {
   imports: { text: "id", jsonb: "data", required: "id data" },
   templates: { text: "id owner_email", jsonb: "data", required: "id owner_email data" },
   preferences: { text: "owner_email preference_type", jsonb: "data", required: "owner_email preference_type data" },
-  order_links: { text: "order_id booking_id", required: "order_id booking_id" }
+  order_links: { text: "order_id booking_id", required: "order_id booking_id" },
+  audit_events: { text: "id actor_id actor_name actor_role action entity_type entity_id", "timestamp with time zone": "occurred_at", jsonb: "before_data after_data", required: "id occurred_at actor_name actor_role action entity_type entity_id" },
+  external_operations: { text: "id operation_key kind entity_id entity_ref actor_id actor_name actor_role status", "timestamp with time zone": "started_at resolved_at", jsonb: "details resolution", required: "id operation_key kind entity_id entity_ref actor_name actor_role details status started_at" }
 };
 
 const keys = [
@@ -26,14 +28,16 @@ const keys = [
   ["booking_parties", "p", ["booking_id", "party_type"]],
   ...["booking_cargo_lines", "booking_containers", "booking_documents"].flatMap((table) => [[table, "p", ["booking_id", "position"]], [table, "u", ["booking_id", "id"]]]),
   ["approvals", "p", ["id"]], ["imports", "p", ["id"]], ["templates", "p", ["id"]],
-  ["preferences", "p", ["owner_email", "preference_type"]], ["order_links", "p", ["order_id"]]
+  ["preferences", "p", ["owner_email", "preference_type"]], ["order_links", "p", ["order_id"]],
+  ["audit_events", "p", ["id"]], ["external_operations", "p", ["id"]]
 ];
 const checks = {
   bookings: ["(length(btrim(id)) > 0)", "(length(btrim(reference)) > 0)", "(status = ANY (ARRAY['DRAFT'::text, 'VALIDATED'::text, 'PENDING_APPROVAL'::text, 'APPROVED'::text, 'COMPLETED'::text, 'CANCELLED'::text]))"],
   booking_parties: ["(party_type = ANY (ARRAY['shipper'::text, 'consignee'::text]))"],
   booking_cargo_lines: ['("position" >= 0)', "(length(btrim(id)) > 0)"],
   booking_containers: ['("position" >= 0)', "(length(btrim(id)) > 0)"],
-  booking_documents: ['("position" >= 0)', "(length(btrim(id)) > 0)", "(size >= 0)", "(size = octet_length(content))"]
+  booking_documents: ['("position" >= 0)', "(length(btrim(id)) > 0)", "(size >= 0)", "(size = octet_length(content))"],
+  external_operations: ["(kind = ANY (ARRAY['CW_COMPLETE'::text, 'CW_SEND'::text, 'ORDER_CREATE'::text, 'ORDER_DELETE'::text]))", "(status = ANY (ARRAY['PENDING'::text, 'COMPLETED'::text, 'ABORTED'::text, 'RECONCILED'::text]))", "(jsonb_typeof(details) = 'object'::text)"]
 };
 for (const table of ["bookings", "booking_parties", "booking_cargo_lines", "booking_containers", "booking_documents"]) {
   checks[table].push("(jsonb_typeof(additional_data) = 'object'::text)");
@@ -50,7 +54,9 @@ const grants = {
   imports: ["SELECT", "INSERT", "UPDATE"],
   templates: ["SELECT", "INSERT", "UPDATE", "DELETE"],
   preferences: ["SELECT", "INSERT", "UPDATE"],
-  order_links: ["SELECT", "INSERT", "DELETE"]
+  order_links: ["SELECT", "INSERT", "DELETE"],
+  audit_events: ["SELECT", "INSERT"],
+  external_operations: ["SELECT", "INSERT", "UPDATE"]
 };
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 function validateSchemaName(schema) {
@@ -87,6 +93,11 @@ export async function verifyRelationalBookingSchema(client, schema = "booking_po
         const found = rows.find((row) => row.table_name === table && row.column_name === name);
         if (!found || found.type !== type || found.not_null !== required.has(name)) throw new Error(`Relational booking schema is incompatible: ${table}.${name} must be ${type} ${required.has(name) ? "NOT NULL" : "nullable"}`);
       }
+      const auditTimestamp = rows.find((row) => row.table_name === "audit_events" && row.column_name === "occurred_at");
+      if (auditTimestamp.default_expression !== "now()") throw new Error("Relational booking schema is incompatible: audit_events.occurred_at must default to now()");
+      for (const [column, expression] of [["started_at", "now()"], ["status", "'PENDING'::text"]]) {
+        if (rows.find((row) => row.table_name === "external_operations" && row.column_name === column).default_expression !== expression) throw new Error(`Relational booking schema is incompatible: external_operations.${column} has an invalid default`);
+      }
     }
   }
   const constraints = (await client.query(`
@@ -114,6 +125,34 @@ export async function verifyRelationalBookingSchema(client, schema = "booking_po
     for (const expression of expressions) {
       if (!constraints.some((row) => row.table_name === table && row.type === "c" && row.expression === expression)) throw new Error(`Relational booking schema is incompatible: missing check on ${table}: ${expression}`);
     }
+    const auditIndex = await client.query(`
+      SELECT EXISTS (
+        SELECT 1 FROM pg_index i
+        JOIN pg_class idx ON idx.oid = i.indexrelid
+        JOIN pg_class tbl ON tbl.oid = i.indrelid
+        JOIN pg_namespace n ON n.oid = tbl.relnamespace
+        JOIN pg_am am ON am.oid = idx.relam
+        WHERE n.nspname = $1 AND tbl.relname = 'audit_events' AND idx.relname = 'audit_events_newest_idx'
+          AND am.amname = 'btree' AND i.indisvalid AND i.indisready AND i.indpred IS NULL
+          AND i.indexprs IS NULL AND i.indnkeyatts = 2
+          AND pg_get_indexdef(i.indexrelid, 1, true) = 'occurred_at'
+          AND pg_get_indexdef(i.indexrelid, 2, true) = 'id'
+          AND (i.indoption[0] & 1) = 1 AND (i.indoption[1] & 1) = 1
+      ) AS valid
+    `, [schema]);
+    if (!auditIndex.rows[0].valid) throw new Error("Relational booking schema is incompatible: audit_events newest-first index is missing or invalid");
+    const pendingIndex = await client.query(`
+      SELECT EXISTS (
+        SELECT 1 FROM pg_index i JOIN pg_class idx ON idx.oid = i.indexrelid
+        JOIN pg_class tbl ON tbl.oid = i.indrelid JOIN pg_namespace n ON n.oid = tbl.relnamespace
+        JOIN pg_am am ON am.oid = idx.relam
+        WHERE n.nspname = $1 AND tbl.relname = 'external_operations' AND idx.relname = 'external_operations_pending_key_idx'
+          AND am.amname = 'btree' AND i.indisvalid AND i.indisready AND i.indisunique AND i.indexprs IS NULL
+          AND i.indnkeyatts = 1 AND pg_get_indexdef(i.indexrelid, 1, true) = 'operation_key'
+          AND pg_get_expr(i.indpred, i.indrelid) = '(status = ''PENDING''::text)'
+      ) AS valid
+    `, [schema]);
+    if (!pendingIndex.rows[0].valid) throw new Error("Relational booking schema is incompatible: external_operations pending key index is missing or invalid");
   }
   const sequence = await client.query("SELECT EXISTS (SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = $1 AND c.relname = 'booking_reference_seq' AND c.relkind = 'S') AS exists", [schema]);
   if (!sequence.rows[0].exists) throw new Error("Relational booking reference sequence is missing");

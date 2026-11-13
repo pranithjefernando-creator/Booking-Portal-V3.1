@@ -1,3 +1,6 @@
+import { createAuditStore } from "./auditStore.js";
+import { finishOperation, listPendingOperations, operationError, reconcileOperation, runExternalOperation } from "./externalOperations.js";
+
 const bookingFields = [
   ["status"], ["mode"], ["incotermCode"], ["freightTerms"], ["originCode"], ["destCode"],
   ["cargoReadyDate", "date"], ["commodityCode"], ["goodsDescription"], ["marksAndNumbers"],
@@ -89,8 +92,8 @@ function projections(fields, prefix = "") {
   });
 }
 
-async function transaction(pool, operation, readOnly = false) {
-  const client = await pool.connect();
+async function transaction(pool, operation, readOnly = false, existingClient) {
+  const client = existingClient || await pool.connect();
   let started = false;
   try {
     await client.query(readOnly ? "BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY" : "BEGIN");
@@ -105,7 +108,12 @@ async function transaction(pool, operation, readOnly = false) {
       catch (rollbackError) { console.error("Relational booking transaction rollback failed:", rollbackError.message); }
     }
     throw error;
-  } finally { client.release(); }
+  } finally { if (!existingClient) client.release(); }
+}
+
+async function checkPendingBookingOperation(client, id, operationId) {
+  const { rows } = await client.query("SELECT id FROM booking_portal_v4.external_operations WHERE operation_key = $1 AND status = 'PENDING'", [`cw:${id}`]);
+  if (rows.length && rows[0].id !== operationId) throw operationError("OPERATION_PENDING", "This booking has an unresolved CargoWise operation. Contact an administrator before changing or retrying it.");
 }
 
 async function writeBooking(client, booking, insert) {
@@ -194,12 +202,37 @@ async function readBookings(client, id, lock = false, includeDocuments = true) {
 export function createRelationalBookingStore(pool, { allocateReference } = {}) {
   if (allocateReference !== undefined && typeof allocateReference !== "function") throw new Error("Reference allocator must be a function");
   return {
-    async create(booking) {
+    async create(booking, audit) {
       return transaction(pool, async (client) => {
         if (!isObject(booking)) throw new Error("Booking must be an object");
         const data = allocateReference ? { ...booking, reference: await allocateReference(client, booking) } : booking;
         await writeBooking(client, data, true);
+        if (audit) await createAuditStore(client).append({ ...audit, entityId: data.reference });
         return (await readBookings(client, data.id))[0];
+      });
+    },
+    async runExternalOperation(details, callback) { return runExternalOperation(pool, details, callback); },
+    async listPendingOperations() { return listPendingOperations(pool); },
+    async listAuditEvents() { return createAuditStore(pool).list(); },
+    async reconcileOperation(id, user, resolution) {
+      return reconcileOperation(pool, id, user, resolution, async (client, operation, decision, actor) => {
+        const [booking] = await readBookings(client, operation.entity_id, true);
+        if (!booking) throw operationError("OPERATION_INVALID", "The booking no longer exists.");
+        const now = new Date().toISOString();
+        if (decision.outcome === "NOT_APPLIED") {
+          if (operation.kind === "CW_COMPLETE" && booking.status === "COMPLETED") {
+            if (!["VALIDATED", "APPROVED"].includes(operation.details.previousStatus)) throw operationError("OPERATION_INVALID", "The booking's previous status cannot be restored automatically.");
+            await writeBooking(client, { ...booking, status: operation.details.previousStatus, completedAt: null, updatedAt: now, updatedBy: actor.name }, false);
+          }
+          return;
+        }
+        await writeBooking(client, {
+          ...booking,
+          ...(operation.kind === "CW_COMPLETE" ? { status: "COMPLETED", completedAt: booking.completedAt || now } : {}),
+          cw1ShipmentRef: decision.cwReference.trim(), cwStatus: "SENT",
+          cwLastAction: operation.details.isUpdate ? "UPDATE" : "CREATE",
+          updatedAt: now, updatedBy: actor.name
+        }, false);
       });
     },
     async get(id) { return transaction(pool, async (client) => (await readBookings(client, id))[0] || null, true); },
@@ -216,17 +249,19 @@ export function createRelationalBookingStore(pool, { allocateReference } = {}) {
         return bookings.map((booking) => ({ booking, approvals: approvalsByBooking.get(booking.id) || [] }));
       }, true);
     },
-    async update(id, change) {
+    async update(id, change, options = {}) {
       return transaction(pool, async (client) => {
         const [current] = await readBookings(client, id, true);
         if (!current) return null;
+        await checkPendingBookingOperation(client, id, options.operationId);
         const reference = current.reference;
-        const updated = await change(current);
+        const updated = await change(current, createAuditStore(client).append);
         if (!isObject(updated)) throw new Error("Booking update must return an object");
         const booking = { ...updated, id, reference };
         await writeBooking(client, booking, false);
+        if (options.operationId && options.shouldComplete?.()) await finishOperation(client, options.operationId);
         return (await readBookings(client, id))[0];
-      });
+      }, false, options.client);
     },
 
     async getPreferences(owner, type) {
@@ -278,10 +313,11 @@ export function createRelationalBookingStore(pool, { allocateReference } = {}) {
       return transaction(pool, async (client) => {
         const [current] = await readBookings(client, bookingId, true);
         if (!current) return null;
+        await checkPendingBookingOperation(client, bookingId);
         const reference = current.reference;
         const { rows } = await client.query("SELECT data FROM booking_portal_v4.approvals WHERE booking_id = $1", [bookingId]);
         const existing = new Map(rows.map((row) => [row.data.id, row.data]));
-        const result = await change(current, [...existing.values()]);
+        const result = await change(current, [...existing.values()], createAuditStore(client).append);
         if (!isObject(result?.booking)) throw new Error("Approval transition must return a booking");
         const booking = { ...result.booking, id: bookingId, reference };
         await writeBooking(client, booking, false);
@@ -358,7 +394,7 @@ export function createRelationalBookingStore(pool, { allocateReference } = {}) {
         return { status: "linked", bookingRef: booking.reference };
       });
     },
-    async unlinkOrder(orderId, checkBooking, expectedBookingId) {
+    async unlinkOrder(orderId, checkBooking, expectedBookingId, options = {}) {
       return transaction(pool, async (client) => {
         await client.query("SELECT pg_advisory_xact_lock(hashtext($1), hashtext($2))", ["booking-order-link", orderId]);
         const { rows } = await client.query("SELECT booking_id FROM booking_portal_v4.order_links WHERE order_id = $1", [orderId]);
@@ -370,7 +406,7 @@ export function createRelationalBookingStore(pool, { allocateReference } = {}) {
         if (expectedBookingId && expectedBookingId !== bookingId) return { status: "conflict" };
         await client.query("DELETE FROM booking_portal_v4.order_links WHERE order_id = $1", [orderId]);
         return { status: "unlinked" };
-      });
+      }, false, options.client);
     }
   };
 }

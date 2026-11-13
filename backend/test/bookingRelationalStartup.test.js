@@ -29,6 +29,66 @@ test("v4 initialization rolls back and releases its connection on incompatible s
   assert.ok(released);
 });
 
+test("v4 audit schema verification checks columns, key, index and privileges", { skip: process.env.BOOKING_DB_TEST !== "1" }, async () => {
+  const pool = createBookingPool();
+  const client = await pool.connect();
+  const schema = `booking_test_${randomUUID().replaceAll("-", "")}`;
+  let started = false;
+  try {
+    const ddl = (await readFile(new URL("../sql/booking-v4.sql", import.meta.url), "utf8")).replaceAll("booking_portal_v4", schema);
+    await client.query("BEGIN");
+    started = true;
+    await client.query(ddl);
+    await client.query(ddl);
+    await verifyRelationalBookingSchema(client, schema);
+    await checkRelationalBookingReadiness(client, schema);
+
+    for (const [statement, error] of [
+      [`ALTER TABLE ${schema}.audit_events ALTER COLUMN action DROP NOT NULL`, /audit_events\.action must be text NOT NULL/],
+      [`ALTER TABLE ${schema}.audit_events ALTER COLUMN occurred_at DROP DEFAULT`, /audit_events\.occurred_at must default to now/],
+      [`ALTER TABLE ${schema}.audit_events DROP CONSTRAINT audit_events_pkey`, /missing key on audit_events/],
+      [`DROP INDEX ${schema}.audit_events_newest_idx`, /audit_events newest-first index is missing or invalid/]
+    ]) {
+      await client.query("SAVEPOINT invalid_audit");
+      await client.query(statement);
+      await assert.rejects(verifyRelationalBookingSchema(client, schema), error);
+      await client.query("ROLLBACK TO SAVEPOINT invalid_audit");
+    }
+
+    await client.query("SAVEPOINT wrong_index");
+    await client.query(`DROP INDEX ${schema}.audit_events_newest_idx`);
+    await client.query(`CREATE INDEX audit_events_newest_idx ON ${schema}.audit_events (occurred_at ASC, id DESC)`);
+    await assert.rejects(verifyRelationalBookingSchema(client, schema), /audit_events newest-first index is missing or invalid/);
+    await client.query("ROLLBACK TO SAVEPOINT wrong_index");
+
+    await client.query("SAVEPOINT missing_audit_column");
+    await client.query(`ALTER TABLE ${schema}.audit_events DROP COLUMN after_data`);
+    await assert.rejects(verifyRelationalBookingSchema(client, schema), /audit_events\.after_data/);
+    await assert.rejects(checkRelationalBookingReadiness(client, schema), { code: "42703" });
+    await client.query("ROLLBACK TO SAVEPOINT missing_audit_column");
+
+    for (const privilege of ["SELECT", "INSERT"]) {
+      const deniedClient = {
+        async query(sql, params) {
+          const result = await client.query(sql, params);
+          if (sql.includes("has_table_privilege")) {
+            const entry = result.rows.find((row) => row.table_name === "audit_events" && row.privilege === privilege);
+            assert.ok(entry, `audit ${privilege} must be checked`);
+            entry.allowed = false;
+          }
+          return result;
+        }
+      };
+      await assert.rejects(verifyRelationalBookingSchema(deniedClient, schema), new RegExp(`lacks ${privilege} on audit_events`));
+    }
+    await verifyRelationalBookingSchema(client, schema);
+  } finally {
+    if (started) await client.query("ROLLBACK");
+    client.release();
+    await pool.end();
+  }
+});
+
 test("v4 schema verification detects incompatible columns, constraints and sequence", { skip: process.env.BOOKING_DB_TEST !== "1" }, async () => {
   const pool = createBookingPool();
   const client = await pool.connect();
