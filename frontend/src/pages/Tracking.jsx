@@ -112,9 +112,12 @@ export default function Tracking() {
     return () => { alive = false; };
   }, []);
   useEffect(() => { const timer = setInterval(() => setNow(new Date()), 60000); return () => clearInterval(timer); }, []);
-  // Only in-progress (not arrived/completed) shipments feed port lookups, and lookups are deduped per UNLOCO port and cached 24h.
+  // Port lookups use scoped shipment history and the shared provider cache.
   useEffect(() => {
-    if (!shipments.length) return;
+    setCongestionByPort({});
+    setHistoryPorts([]);
+    setCongestionError("");
+    if (!shipments.length) { setCongestionLoading(false); return; }
     let alive = true;
     setCongestionLoading(true);
     api.get("/port-congestion/history").then(async (history) => {
@@ -128,7 +131,7 @@ export default function Tracking() {
         setCongestionError(unavailable ? `Live congestion is unavailable for ${unavailable} linked port(s).` : "");
       }
     })
-      .catch((error) => { if (alive) setCongestionError(error.message); })
+      .catch((error) => { if (alive) { setCongestionByPort({}); setCongestionError(error.data?.detail || error.message); } })
       .finally(() => { if (alive) setCongestionLoading(false); });
     return () => { alive = false; };
   }, [shipments]);

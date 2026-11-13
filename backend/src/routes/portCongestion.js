@@ -21,10 +21,16 @@ router.post("/port-congestion/lookup", requireTracking, async (req, res) => {
     const ports = await getPortCongestion(codes);
     res.json({ asOf: new Date().toISOString(), ports });
   } catch (e) {
-    res.status(502).json({ error: "Unable to retrieve port congestion data", detail: e.message });
+    res.status(["PROVIDER_CACHE_UNAVAILABLE", "PROVIDER_QUOTA_UNAVAILABLE", "PROVIDER_COORDINATION_UNAVAILABLE", "PROVIDER_REQUEST_UNCERTAIN", "PROVIDER_REQUEST_PENDING"].includes(e.code) ? 503 : 502).json({ error: "Unable to retrieve port congestion data", detail: e.message });
   }
 });
 
-router.get("/port-congestion/status", requireTracking, (req, res) => res.json(cacheStats()));
+router.get("/port-congestion/status", requireTracking, async (req, res) => {
+  try { res.json(await cacheStats()); }
+  catch (error) {
+    if (!["PROVIDER_CACHE_UNAVAILABLE", "PROVIDER_QUOTA_UNAVAILABLE"].includes(error.code)) throw error;
+    res.status(503).json({ error: "Unable to retrieve port congestion status", detail: error.message });
+  }
+});
 
 export default router;

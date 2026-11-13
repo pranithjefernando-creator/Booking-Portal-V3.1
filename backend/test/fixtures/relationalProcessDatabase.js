@@ -11,6 +11,10 @@ export function bookingDatabase() {
   }
   return store;
 }
+export function bookingDatabasePool() {
+  bookingDatabase();
+  return pool;
+}
 export async function initializeBookingDatabase() {
   await initializeSchemas();
   bookingDatabase();

@@ -1,7 +1,8 @@
 import { config } from "./config.js";
 import { panvayaRequest, providerError } from "./panvayaClient.js";
+import { providerCacheStore } from "./providerCacheStore.js";
+import { coordinateProviderFetch } from "./providerFetchCoordination.js";
 
-const cache = new Map();
 const inFlight = new Map();
 
 function reference(value) {
@@ -31,28 +32,33 @@ export function trackingIdentity(input) {
 export async function getTracking(input) {
   const identity = trackingIdentity(input);
   const key = JSON.stringify(identity);
-  const existing = cache.get(key);
-  if (existing && Date.now() < existing.expiresAt) {
-    if (existing.error) throw existing.error;
-    return { ...existing.result, cached: true };
-  }
   if (inFlight.has(key)) return inFlight.get(key);
   const promise = (async () => {
     try {
-      const body = await panvayaRequest(`/track/${identity.mode}`, identity.payload);
-      const data = identity.mode === "air" ? body : body.data;
-      if (!data || (identity.mode === "ocean" && !Array.isArray(data.containers)) || (identity.mode === "air" && !data.awbNumber)) {
-        throw providerError("Invalid Panvaya tracking response", 502, "UPSTREAM_ERROR");
-      }
-      const fetchedAt = Date.now();
-      const result = { mode: identity.mode, source: "panvaya", data, cached: false, cachedAt: new Date(fetchedAt).toISOString() };
-      const ttl = Math.max(60000, Number(config.freightPulse.cacheTtlMs) || 86400000);
-      cache.set(key, { result, expiresAt: fetchedAt + ttl });
-      return result;
-    } catch (error) {
-      const safeError = providerError(error.message, error.status || 502, error.code || "UPSTREAM_ERROR");
-      cache.set(key, { error: safeError, expiresAt: Date.now() + 60000 });
-      throw safeError;
+      const coordinated = await coordinateProviderFetch("tracking", key, {
+        read: () => providerCacheStore.getTracking(key),
+        accept: Boolean,
+        async fetch(beforeFetch) {
+          try {
+            const body = await panvayaRequest(`/track/${identity.mode}`, identity.payload, { beforeFetch });
+            const data = identity.mode === "air" ? body : body.data;
+            if (!data || (identity.mode === "ocean" && !Array.isArray(data.containers)) || (identity.mode === "air" && !data.awbNumber)) {
+              throw providerError("Invalid Panvaya tracking response", 502, "UPSTREAM_ERROR");
+            }
+            const fetchedAt = Date.now();
+            return { result: { mode: identity.mode, source: "panvaya", data, cached: false, cachedAt: new Date(fetchedAt).toISOString() }, error: null, fetchedAt };
+          } catch (error) {
+            if (error.code === "PROVIDER_QUOTA_UNAVAILABLE" || error.code === "PROVIDER_REQUEST_UNCERTAIN" ||
+                error.code === "PROVIDER_COORDINATION_UNAVAILABLE" || error.providerRequestSent) throw error;
+            const safeError = providerError(error.message, error.status || 502, error.code || "UPSTREAM_ERROR");
+            return { result: null, error: { message: safeError.message, status: safeError.status, code: safeError.code }, fetchedAt: Date.now() };
+          }
+        },
+        write: (value, client) => providerCacheStore.putTracking(key, value.result, value.error, value.fetchedAt,
+          value.error ? 60000 : Math.max(60000, Number(config.freightPulse.cacheTtlMs) || 86400000), client)
+      });
+      if (coordinated.value.error) throw providerError(coordinated.value.error.message, coordinated.value.error.status, coordinated.value.error.code);
+      return coordinated.cached ? { ...coordinated.value.result, cached: true } : coordinated.value.result;
     } finally {
       inFlight.delete(key);
     }

@@ -1,9 +1,6 @@
 import { api } from "./api.js";
 import { isArrived } from "./trackingData.js";
 
-const CLIENT_CACHE_KEY = "sbms.portCongestion.cache.panvaya.v1";
-const CLIENT_TTL_MS = 24 * 60 * 60 * 1000;
-
 // "In progress" = not yet arrived/completed. The sample dataset has no explicit cancelled flag.
 export function isActiveShipment(shipment, now = new Date()) {
   return !isArrived(shipment, now);
@@ -19,32 +16,17 @@ export function activePortCodes(shipments, now = new Date()) {
   return [...codes];
 }
 
-function readClientCache() {
-  try { return JSON.parse(localStorage.getItem(CLIENT_CACHE_KEY) || "{}"); } catch (_) { return {}; }
-}
-function writeClientCache(cache) {
-  try { localStorage.setItem(CLIENT_CACHE_KEY, JSON.stringify(cache)); } catch (_) { /* storage unavailable */ }
-}
-
-// Skips the backend call entirely for ports already fetched in this browser within the last 24h.
 export async function loadPortCongestion(portCodes, request = api.post) {
   if (!portCodes.length) return {};
-  const cache = readClientCache();
-  const now = Date.now();
-  const fresh = {};
-  const stale = [];
-  portCodes.forEach((code) => {
-    const entry = cache[code];
-    if (entry && now - entry.cachedAt < CLIENT_TTL_MS) fresh[code] = entry.data;
-    else stale.push(code);
-  });
-  if (!stale.length) return fresh;
-  for (let offset = 0; offset < stale.length; offset += 60) {
-    const response = await request("/port-congestion/lookup", { ports: stale.slice(offset, offset + 60) });
-    Object.entries(response.ports || {}).forEach(([code, data]) => { cache[code] = { data, cachedAt: now }; fresh[code] = data; });
+  const results = {};
+  for (let offset = 0; offset < portCodes.length; offset += 60) {
+    const ports = portCodes.slice(offset, offset + 60);
+    const response = await request("/port-congestion/lookup", { ports });
+    if (!response?.ports || typeof response.ports !== "object" || Array.isArray(response.ports) ||
+        ports.some((code) => !Object.hasOwn(response.ports, code))) throw new Error("Invalid port congestion response");
+    Object.assign(results, response.ports);
   }
-  writeClientCache(cache);
-  return fresh;
+  return results;
 }
 
 const LEVEL_RANK = { low: 1, moderate: 2, high: 3, severe: 4, unknown: 0 };

@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { createBookingPool } from "./bookingStore.js";
 import { createRelationalBookingStore } from "./bookingRelationalStore.js";
 import { checkRelationalBookingReadiness, initializeRelationalBookingSchema } from "./bookingRelationalSchema.js";
+import { checkProviderCacheReadiness, initializeProviderCacheSchema } from "./providerCacheSchema.js";
 
 let pool;
 let store;
@@ -14,14 +15,21 @@ export function bookingDatabase() {
   return store;
 }
 
+export function bookingDatabasePool() {
+  bookingDatabase();
+  return pool;
+}
+
 export async function initializeBookingDatabase() {
   bookingDatabase();
   await initializeRelationalBookingSchema(pool);
+  await initializeProviderCacheSchema(pool);
 }
 
 export async function checkBookingDatabase() {
   bookingDatabase();
   await checkRelationalBookingReadiness(pool);
+  await checkProviderCacheReadiness(pool);
 }
 
 export async function closeBookingDatabase() {

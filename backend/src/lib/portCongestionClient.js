@@ -45,11 +45,13 @@ function normalize(unloco, body) {
   };
 }
 
-export async function fetchLivePortCongestion(unloco) {
+export async function fetchLivePortCongestion(unloco, beforeFetch) {
   try {
-    const body = await panvayaRequest(`${config.freightPulse.portPath}?locode=${encodeURIComponent(unloco)}`);
+    const body = await panvayaRequest(`${config.freightPulse.portPath}?locode=${encodeURIComponent(unloco)}`, undefined, { beforeFetch });
     return normalize(unloco, body);
   } catch (e) {
+    if (["PROVIDER_QUOTA_UNAVAILABLE", "PROVIDER_REQUEST_UNCERTAIN", "PROVIDER_COORDINATION_UNAVAILABLE"].includes(e.code) || e.providerRequestSent) throw e;
+    if (e.localLimit) return { ...mockPortCongestion(unloco), source: "rate-limited" };
     console.error(`[port-congestion] live lookup failed for ${unloco}: ${e.message}`);
     if (e.status === 404) return normalize(unloco, { ports: [] });
     return { ...mockPortCongestion(unloco), source: "fallback", error: e.message };

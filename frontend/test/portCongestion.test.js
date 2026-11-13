@@ -23,6 +23,20 @@ test("large scoped histories are batched without silently dropping ports", async
     sizes.push(body.ports.length);
     return { ports: Object.fromEntries(body.ports.map((code) => [code, { unloco: code, source: "live", congestionLevel: "High" }])) };
   });
+
   assert.deepEqual(sizes, [60, 5]);
   assert.equal(Object.keys(result).length, 65);
+});
+
+test("cached results never bypass renewed authorization or database errors", async () => {
+  let calls = 0;
+  const request = async () => {
+    calls++;
+    if (calls === 1) return { ports: { SGSIN: { unloco: "SGSIN", source: "live" } } };
+    throw new Error("Provider cache database is unavailable");
+  };
+  assert.equal((await loadPortCongestion(["SGSIN"], request)).SGSIN.source, "live");
+  await assert.rejects(loadPortCongestion(["SGSIN"], request), /database is unavailable/);
+  assert.equal(calls, 2);
+  await assert.rejects(loadPortCongestion(["SGSIN"], async () => ({ ports: {} })), /Invalid port congestion response/);
 });

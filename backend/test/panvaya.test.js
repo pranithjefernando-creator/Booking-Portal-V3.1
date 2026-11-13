@@ -2,12 +2,28 @@ import assert from "node:assert/strict";
 import { config } from "../src/lib/config.js";
 import { getPortCongestion, cacheStats } from "../src/lib/portCongestionCache.js";
 import { getTracking } from "../src/lib/trackingCache.js";
+import { providerCacheStore } from "../src/lib/providerCacheStore.js";
+import { memoryProviderCacheStore } from "./fixtures/memoryProviderCacheStore.js";
+import { providerUsageStore } from "../src/lib/providerUsageStore.js";
+import { memoryProviderUsageStore } from "./fixtures/memoryProviderUsageStore.js";
+import { providerFetchLeaseStore } from "../src/lib/providerFetchCoordination.js";
+import { memoryProviderFetchLeaseStore } from "./fixtures/memoryProviderFetchLeaseStore.js";
+import { providerPortRetryStore } from "../src/lib/providerPortRetryStore.js";
+import { memoryProviderPortRetryStore } from "./fixtures/memoryProviderPortRetryStore.js";
 import { trackingRequestFor, trackingMapData, withLiveTracking, shipmentLifecycle, trackingEventDateTime } from "../../frontend/src/trackingData.js";
 
 config.freightPulse.apiKey = "test-key";
 config.freightPulse.mode = "live";
 Object.assign(config.freightPulse, { baseUrl: "https://api.panvaya.com/api/v1", portPath: "/port-congestion", authHeader: "X-API-Key", authScheme: "", rateLimitPerMin: 5, monthlyQuota: 100, cacheTtlMs: 86400000 });
 const originalFetch = globalThis.fetch;
+const originalStore = { ...providerCacheStore };
+const originalUsageStore = { ...providerUsageStore };
+const originalLeases = { ...providerFetchLeaseStore };
+const originalRetries = { ...providerPortRetryStore };
+Object.assign(providerCacheStore, memoryProviderCacheStore());
+Object.assign(providerUsageStore, memoryProviderUsageStore());
+Object.assign(providerFetchLeaseStore, memoryProviderFetchLeaseStore());
+Object.assign(providerPortRetryStore, memoryProviderPortRetryStore());
 let calls = [];
 globalThis.fetch = async (url, options) => {
   calls.push({ url, options });
@@ -30,7 +46,7 @@ try {
   assert.equal(results[0].SGSIN.ratioVsBaseline, null);
   assert.equal((await getPortCongestion(["SGSIN"])).SGSIN.cached, true);
   assert.equal(calls.length, 1);
-  assert.equal(cacheStats().callsThisMonth, 1);
+  assert.equal((await cacheStats()).callsThisMonth, 1);
   await Promise.all([getTracking({ mode: "SEA", container: " msku8094830 " }), getTracking({ mode: "Ocean", container: "MSKU8094830" })]);
   assert.equal(calls.length, 2);
   assert.deepEqual(JSON.parse(calls[1].options.body), { container: "MSKU8094830", include_route_data: true });
@@ -49,7 +65,12 @@ try {
   assert.deepEqual(JSON.parse(calls[4].options.body), { bol: "BL123", include_route_data: true });
   await assert.rejects(getTracking({ mode: "SEA", bk: "BK123" }), { status: 429 });
   assert.equal(calls.length, 5);
-  assert.equal(cacheStats().callsThisMonth, 5);
+  assert.equal((await cacheStats()).callsThisMonth, 5);
+  const limitedPort = (await getPortCongestion(["LKCMB"])).LKCMB;
+  assert.equal(limitedPort.source, "rate-limited");
+  assert.equal(limitedPort.cached, false);
+  assert.equal((await getPortCongestion(["LKCMB"])).LKCMB.cached, true);
+  assert.equal(calls.length, 5);
   assert.equal((await getTracking({ mode: "AIR", awb: "04445428036" })).cached, true);
   const shipment = { id: "AIR1", raw: { Trans: "AIR", Master: "044-45428036" }, containers: [], events: [] };
   assert.deepEqual(trackingRequestFor(shipment), { mode: "AIR", awb: "04445428036" });
@@ -89,4 +110,8 @@ try {
   console.log("Panvaya contracts, concurrent/repeated caches, canonical references, errors and shared rate limit tests passed");
 } finally {
   globalThis.fetch = originalFetch;
+  Object.assign(providerCacheStore, originalStore);
+  Object.assign(providerUsageStore, originalUsageStore);
+  Object.assign(providerFetchLeaseStore, originalLeases);
+  Object.assign(providerPortRetryStore, originalRetries);
 }

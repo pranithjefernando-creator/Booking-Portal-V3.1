@@ -9,6 +9,14 @@ import { config } from "../src/lib/config.js";
 import trackingRouter from "../src/routes/tracking.js";
 import congestionRouter from "../src/routes/portCongestion.js";
 import miscRouter from "../src/routes/misc.js";
+import { providerCacheStore } from "../src/lib/providerCacheStore.js";
+import { memoryProviderCacheStore } from "./fixtures/memoryProviderCacheStore.js";
+import { providerUsageStore } from "../src/lib/providerUsageStore.js";
+import { memoryProviderUsageStore } from "./fixtures/memoryProviderUsageStore.js";
+import { providerFetchLeaseStore } from "../src/lib/providerFetchCoordination.js";
+import { memoryProviderFetchLeaseStore } from "./fixtures/memoryProviderFetchLeaseStore.js";
+import { providerPortRetryStore } from "../src/lib/providerPortRetryStore.js";
+import { memoryProviderPortRetryStore } from "./fixtures/memoryProviderPortRetryStore.js";
 
 seed();
 const record = { "Shipment ID": "S1", Trans: "SEA", "Consignor Name": "Customer A", "Consignee Name": "Receiver A", "Leg 1-Load": " SGSIN ", "Leg 1 - Discharge": "CNSHA" };
@@ -32,7 +40,7 @@ test("congestion eligibility uses historical ocean leg ports only", () => {
 
 test("scoped accounts share one port fetch without sharing unauthorized shipment access", async () => {
   const records = await trackingRecords();
-  const shipment = records.find((item) => item.Trans === "SEA" && historicalPorts([item]).length && item["Consignor Name"] && item["Consignee Name"]);
+  const shipment = records.find((item) => item.Trans === "SEA" && historicalPorts([item]).length && item["Consignor Name"] && item["Consignee Name"] && item.Master);
   assert.ok(shipment);
   const organizations = trackingOrganizations([shipment]);
   const shipper = organizations.find((org) => org.label === shipment["Consignor Name"]);
@@ -43,12 +51,21 @@ test("scoped accounts share one port fetch without sharing unauthorized shipment
   const password = "Scope-Test-Pass1";
   for (const account of [...users, db.users[0]]) setPassword(account.id, password);
   const settings = { ...config.freightPulse };
+  const originalStore = { ...providerCacheStore };
+  const originalUsageStore = { ...providerUsageStore };
+  const originalLeases = { ...providerFetchLeaseStore };
+  const originalRetries = { ...providerPortRetryStore };
+  Object.assign(providerCacheStore, memoryProviderCacheStore());
+  Object.assign(providerUsageStore, memoryProviderUsageStore());
+  Object.assign(providerFetchLeaseStore, memoryProviderFetchLeaseStore());
+  Object.assign(providerPortRetryStore, memoryProviderPortRetryStore());
   Object.assign(config.freightPulse, { apiKey: "test-key", mode: "live", baseUrl: "https://api.panvaya.com/api/v1", rateLimitPerMin: 100, monthlyQuota: 1000 });
   const originalFetch = globalThis.fetch;
   let providerCalls = 0;
   globalThis.fetch = async (url, options) => {
     if (String(url).startsWith("https://api.panvaya.com/")) {
       providerCalls += 1;
+      if (String(url).endsWith("/track/ocean")) return new Response(JSON.stringify({ data: { containers: [] } }));
       const code = new URL(url).searchParams.get("locode");
       return new Response(JSON.stringify({ count: 1, ports: [{ locode: code, name: code, country: "US", anchorLast30: { median: 2 } }] }));
     }
@@ -83,17 +100,60 @@ test("scoped accounts share one port fetch without sharing unauthorized shipment
     assert.equal(first.ports[port].cached, false);
     assert.equal(second.ports[port].cached, true);
     assert.equal(providerCalls, 1);
+    const unavailable = Object.assign(new Error("Provider cache is unavailable"), { code: "PROVIDER_CACHE_UNAVAILABLE", status: 503 });
+    const store = { ...providerCacheStore };
+    providerCacheStore.getPort = async () => { throw unavailable; };
+    providerCacheStore.countPorts = async () => { throw unavailable; };
+    const failedLookup = await post("/api/v1/port-congestion/lookup", { ports: [port] }, tokens[0]);
+    assert.equal(failedLookup.status, 503);
+    assert.match((await failedLookup.json()).detail, /cache is unavailable/);
+    assert.equal((await get("/api/v1/port-congestion/status", tokens[0])).status, 503);
+    Object.assign(providerCacheStore, store);
+    const quotaUnavailable = Object.assign(new Error("Provider quota accounting is unavailable"), { code: "PROVIDER_QUOTA_UNAVAILABLE", status: 503 });
+    const usage = { ...providerUsageStore };
+    providerCacheStore.getPort = async () => null;
+    providerUsageStore.reserve = async () => { throw quotaUnavailable; };
+    providerUsageStore.stats = async () => { throw quotaUnavailable; };
+    assert.equal((await post("/api/v1/port-congestion/lookup", { ports: [port] }, tokens[0])).status, 503);
+    assert.equal((await get("/api/v1/port-congestion/status", tokens[0])).status, 503);
+    Object.assign(providerCacheStore, store);
+    Object.assign(providerUsageStore, usage);
+    const leaseStore = { ...providerFetchLeaseStore };
+    providerCacheStore.getPort = async () => null;
+    providerFetchLeaseStore.claim = async () => ({ owner: false, id: "00000000-0000-4000-8000-000000000001", state: "uncertain", expired: false });
+    const uncertain = await post("/api/v1/port-congestion/lookup", { ports: [port] }, tokens[0]);
+    assert.equal(uncertain.status, 503);
+    assert.match((await uncertain.json()).detail, /may have been billed/);
+    Object.assign(providerCacheStore, store);
+    Object.assign(providerFetchLeaseStore, leaseStore);
+    providerCacheStore.getPort = async () => { throw new Error("Unauthorized cache access"); };
     assert.equal((await post("/api/v1/port-congestion/lookup", { ports: [port] }, tokens[2])).status, 403);
     assert.equal((await post("/api/v1/port-congestion/lookup", { ports: ["ZZZZZ"] }, tokens[0])).status, 403);
+    Object.assign(providerCacheStore, store);
     assert.equal(providerCalls, 1);
     assert.equal((await post("/api/v1/tracking/lookup", { mode: "SEA", bol: "UNASSIGNED" }, tokens[0])).status, 403);
+    const trackingInput = { mode: "SEA", bol: shipment.Master };
+    const firstTracking = await post("/api/v1/tracking/lookup", trackingInput, tokens[0]);
+    assert.equal(firstTracking.status, 200);
+    assert.equal((await firstTracking.json()).cached, false);
+    const readTracking = providerCacheStore.getTracking;
+    providerCacheStore.getTracking = async () => { throw new Error("Unauthorized cache access"); };
+    assert.equal((await post("/api/v1/tracking/lookup", trackingInput, tokens[2])).status, 403);
+    providerCacheStore.getTracking = readTracking;
+    assert.equal((await (await post("/api/v1/tracking/lookup", trackingInput, tokens[1])).json()).cached, true);
+    assert.equal(providerCalls, 2);
     assert.equal((await post(`/api/v1/users/${users[1].id}/tracking-scope`, { trackingOrgs: [] }, tokens[0])).status, 403);
     assert.equal((await post(`/api/v1/users/${users[1].id}/tracking-scope`, { trackingOrgs: ["unknown-org"] }, tokens[4])).status, 400);
     assert.equal((await post(`/api/v1/users/${users[1].id}/tracking-scope`, { trackingOrgs: [] }, tokens[4])).status, 200);
+    assert.equal((await post("/api/v1/tracking/lookup", trackingInput, tokens[1])).status, 403);
     assert.equal((await (await get("/api/v1/port-congestion/history", tokens[1])).json()).ports.length, 0);
   } finally {
     globalThis.fetch = originalFetch;
     Object.assign(config.freightPulse, settings);
+    Object.assign(providerCacheStore, originalStore);
+    Object.assign(providerUsageStore, originalUsageStore);
+    Object.assign(providerFetchLeaseStore, originalLeases);
+    Object.assign(providerPortRetryStore, originalRetries);
     await new Promise((resolve) => server.close(resolve));
   }
 });

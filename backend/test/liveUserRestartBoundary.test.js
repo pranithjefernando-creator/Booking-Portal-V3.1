@@ -47,7 +47,7 @@ test("live PostgreSQL access controls workflows across changes and restarts", { 
     errors = "";
     child = spawn(process.execPath, ["--experimental-loader", new URL("./fixtures/postgresSessionLoader.js", import.meta.url).href, "server.js"], {
       cwd, stdio: ["ignore", "ignore", "pipe"],
-      env: { ...process.env, PORT: String(port), AUTH_SECRET: secret, AUTH_TOKEN_TTL_HOURS: "8", TEST_ACCESS_SCHEMA: schema, TEST_BOOKING_SCHEMA: bookingSchema, TRACKING_DB_PASSWORD: "", ORDER_DB_PASSWORD: "", ORG_DB_PASSWORD: "", CW_MODE: "mock", NODE_ENV: "production" }
+      env: { ...process.env, PORT: String(port), AUTH_SECRET: secret, AUTH_TOKEN_TTL_HOURS: "8", TEST_ACCESS_SCHEMA: schema, TEST_BOOKING_SCHEMA: bookingSchema, TRACKING_DB_PASSWORD: "", ORDER_DB_PASSWORD: "", ORG_DB_PASSWORD: "", CW_MODE: "mock", PANVAYA_CACHE_ACCOUNT: "test-account", PANVAYA_CACHE_ENVIRONMENT: "test", FREIGHTPULSE_MODE: "mock", NODE_ENV: "production" }
     });
     child.stderr.on("data", (chunk) => { errors += chunk; });
     for (let attempt = 0; attempt < 200; attempt++) {
@@ -206,7 +206,12 @@ test("live PostgreSQL access controls workflows across changes and restarts", { 
     assert.equal((await request("/api/v1/tracking/lookup", "POST", { mode: "SEA", bol: "DENIED-BL" }, userLogin.token)).status, 403);
     const lookup = await request("/api/v1/tracking/lookup", "POST", { mode: "SEA", bol: "ALLOWED-BL" }, userLogin.token);
     assert.equal(lookup.status, 200);
-    assert.equal((await lookup.json()).data.containers[0].container_number, "TESTU1234567");
+    const trackingResult = await lookup.json();
+    assert.equal(trackingResult.data.containers[0].container_number, "TESTU1234567");
+    assert.equal(trackingResult.cached, false);
+    const portLookup = await request("/api/v1/port-congestion/lookup", "POST", { ports: ["LKCMB"] }, userLogin.token);
+    assert.equal(portLookup.status, 200);
+    assert.equal((await portLookup.json()).ports.LKCMB.cached, false);
     assert.deepEqual((await (await request("/api/v1/port-congestion/history", "GET", undefined, userLogin.token)).json()).ports.sort(), ["AEDXB", "LKCMB"]);
     assert.equal((await request(`/api/v1/users/${createdUser.id}/tracking-scope`, "POST", { trackingOrgs: [] }, current.token)).status, 200);
     assert.deepEqual((await (await request("/api/v1/tracking/shipments", "GET", undefined, userLogin.token)).json()).records, []);
@@ -273,11 +278,22 @@ test("live PostgreSQL access controls workflows across changes and restarts", { 
     assert.equal((await request("/api/ready", "GET")).status, 503);
     assert.equal((await request("/api/v1/bookings", "GET", undefined, current.token)).status, 500);
     assert.equal((await request("/api/v1/audit-logs", "GET", undefined, current.token)).status, 500);
+    const failedTracking = await request("/api/v1/tracking/lookup", "POST", { mode: "SEA", bol: "ALLOWED-BL" }, userLogin.token);
+    assert.equal(failedTracking.status, 503);
+    assert.equal((await failedTracking.json()).code, "PROVIDER_CACHE_UNAVAILABLE");
+    assert.equal((await request("/api/v1/port-congestion/lookup", "POST", { ports: ["LKCMB"] }, userLogin.token)).status, 503);
+    assert.equal((await request("/api/v1/port-congestion/status", "GET", undefined, userLogin.token)).status, 503);
     await pool.query(`ALTER SCHEMA ${unavailableBookingSchema} RENAME TO ${bookingSchema}`);
     bookingRenamed = false;
     assert.equal((await request("/api/ready", "GET")).status, 200);
     await stop();
     await start();
+    const cachedTracking = await request("/api/v1/tracking/lookup", "POST", { mode: "SEA", bol: "ALLOWED-BL" }, userLogin.token);
+    assert.equal(cachedTracking.status, 200);
+    assert.equal((await cachedTracking.json()).cached, true);
+    const cachedPort = await request("/api/v1/port-congestion/lookup", "POST", { ports: ["LKCMB"] }, userLogin.token);
+    assert.equal(cachedPort.status, 200);
+    assert.equal((await cachedPort.json()).ports.LKCMB.cached, true);
     assert.equal((await request("/api/v1/me", "GET", undefined, current.token)).status, 200);
     const afterRestartAudit = await (await request("/api/v1/audit-logs", "GET", undefined, current.token)).json();
     for (const event of createdAudit.items) assert.ok(afterRestartAudit.items.some((persisted) => persisted.id === event.id && persisted.action === event.action && persisted.entityId === event.entityId));
